@@ -1,0 +1,409 @@
+% ============================================================================
+% references.bib — entropybrush digital-twin paper
+%
+% PROVENANCE: assembled from an automated prior-art survey, then VERIFIED
+% entry-by-entry on 2026-07-24 against the Crossref API + DBLP + publisher pages
+% + arXiv API (aggregators never used as sole source). Every DOI resolves to the
+% correct paper. Six entries had author/page corrections applied. One field
+% remains unverifiable and is flagged inline:
+%   - adobe2012paintpatent: inventor names (USPTO/Google Patents bot-gated; the
+%     assignee is cited as author, which is factually safe).
+% Two deliberate non-changes are annotated inline (baxter2004impasto pages;
+% online-vs-print year splits).
+% ============================================================================
+
+% ---------------------------------------------------------------------------
+% Paint simulation substrate (prior art — establishes the sim is NOT novel)
+% ---------------------------------------------------------------------------
+
+@inproceedings{curtis1997watercolor,
+  author    = {Curtis, Cassidy J. and Anderson, Sean E. and Seims, Joshua E. and Fleischer, Kurt W. and Salesin, David H.},
+  title     = {Computer-Generated Watercolor},
+  booktitle = {Proceedings of SIGGRAPH '97},
+  pages     = {421--430},
+  year      = {1997},
+  doi       = {10.1145/258734.258896}
+}
+
+@inproceedings{baxter2001dab,
+  author    = {Baxter, William and Scheib, Vincent and Lin, Ming C. and Manocha, Dinesh},
+  title     = {{DAB}: Interactive Haptic Painting with {3D} Virtual Brushes},
+  booktitle = {Proceedings of SIGGRAPH 2001},
+  pages     = {461--468},
+  year      = {2001},
+  doi       = {10.1145/383259.383313}
+}
+
+% NOTE: baxter2004impasto pages are 45--56 (Baxter's CV + the UNC PDF); ACM DL
+% and DBLP erroneously list 45--148 (a 104-page paper) --- do NOT "correct" it.
+@inproceedings{baxter2004impasto,
+  author    = {Baxter, William V. and Wendt, Jeremy and Lin, Ming C.},
+  title     = {{IMPaSTo}: A Realistic, Interactive Model for Paint},
+  booktitle = {Proceedings of the 3rd International Symposium on Non-Photorealistic Animation and Rendering (NPAR '04)},
+  pages     = {45--56},
+  year      = {2004},
+  doi       = {10.1145/987657.987665}
+}
+
+@phdthesis{baxter2004thesis,
+  author = {Baxter, William V.},
+  title  = {Physically-Based Modeling Techniques for Interactive Digital Painting},
+  school = {University of North Carolina at Chapel Hill},
+  year   = {2004}
+}
+
+@article{chu2005moxi,
+  author  = {Chu, Nelson S.-H. and Tai, Chiew-Lan},
+  title   = {{MoXi}: Real-Time Ink Dispersion in Absorbent Paper},
+  journal = {ACM Transactions on Graphics},
+  volume  = {24}, number = {3}, pages = {504--511}, year = {2005},
+  doi     = {10.1145/1073204.1073221}
+}
+
+@article{chen2015wetbrush,
+  author  = {Chen, Zhili and Kim, Byungmoon and Ito, Daichi and Wang, Huamin},
+  title   = {Wetbrush: {GPU}-Based {3D} Painting Simulation at the Bristle Level},
+  journal = {ACM Transactions on Graphics},
+  volume  = {34}, number = {6}, year = {2015},
+  doi     = {10.1145/2816795.2818066}
+}
+
+@article{lu2013realbrush,
+  author  = {Lu, Jingwan and Barnes, Connelly and DiVerdi, Stephen and Finkelstein, Adam},
+  title   = {{RealBrush}: Painting with Examples of Physical Media},
+  journal = {ACM Transactions on Graphics},
+  volume  = {32}, number = {4}, pages = {117:1--117:12}, year = {2013},
+  doi     = {10.1145/2461912.2461998}
+}
+
+@inproceedings{lu2014realpigment,
+  author    = {Lu, Jingwan and DiVerdi, Stephen and Chen, Willa A. and Barnes, Connelly and Finkelstein, Adam},
+  title     = {{RealPigment}: Paint Compositing by Example},
+  booktitle = {Proceedings of the Workshop on Non-Photorealistic Animation and Rendering (NPAR '14)},
+  pages     = {21--30}, year = {2014},
+  doi       = {10.1145/2630397.2630401}
+}
+
+@article{sochorova2021pigment,
+  author  = {Sochorov\'{a}, \v{S}\'{a}rka and Jamri\v{s}ka, Ond\v{r}ej},
+  title   = {Practical Pigment Mixing for Digital Painting},
+  journal = {ACM Transactions on Graphics},
+  volume  = {40}, number = {6}, pages = {234:1--234:11}, year = {2021},
+  doi     = {10.1145/3478513.3480549}
+}
+
+@article{haase1992pigment,
+  author  = {Haase, Chet S. and Meyer, Gary W.},
+  title   = {Modeling Pigmented Materials for Realistic Image Synthesis},
+  journal = {ACM Transactions on Graphics},
+  volume  = {11}, number = {4}, pages = {305--335}, year = {1992},
+  doi     = {10.1145/146443.146452}
+}
+
+@article{tan2017decomposing,
+  author  = {Tan, Jianchao and Lien, Jyh-Ming and Gingold, Yotam},
+  title   = {Decomposing Images into Layers via {RGB}-Space Geometry},
+  journal = {ACM Transactions on Graphics},
+  volume  = {36}, number = {1}, pages = {7:1--7:14}, year = {2017},
+  doi     = {10.1145/2988229}
+}
+
+@article{vanlaerhoven2005watery,
+  author  = {Van Laerhoven, Tom and Van Reeth, Frank},
+  title   = {Real-Time Simulation of Watery Paint},
+  journal = {Computer Animation and Virtual Worlds},
+  volume  = {16}, number = {3--4}, pages = {429--439}, year = {2005},
+  doi     = {10.1002/cav.95}
+}
+
+@article{stuyck2016oilmobile,
+  author  = {Stuyck, Tuur and Da, Fang and Hadap, Sunil and Dutr\'{e}, Philip},
+  title   = {Real-Time Oil Painting on Mobile Hardware},
+  journal = {Computer Graphics Forum},
+  volume  = {36}, number = {8}, pages = {69--79}, year = {2016},
+  doi     = {10.1111/cgf.12995}
+}
+
+@article{diverdi2013polygons,
+  author  = {DiVerdi, Stephen and Krishnaswamy, Aravind and M\v{e}ch, Radom\'{i}r and Ito, Daichi},
+  title   = {Painting with Polygons: A Procedural Watercolor Engine},
+  journal = {IEEE Transactions on Visualization and Computer Graphics},
+  volume  = {19}, number = {5}, pages = {723--735}, year = {2013},
+  doi     = {10.1109/TVCG.2012.295}
+}
+
+@article{herson2026dripping,
+  author  = {Herson, Zo\'{e} and Paris, Axel and Michel, \'{E}lie},
+  title   = {Dripping Thin Films for Real-Time Digital Painting},
+  journal = {Computer Graphics Forum (Proc. Eurographics 2026)},
+  year    = {2026},
+  doi     = {10.1111/cgf.70416}
+}
+
+@article{hertzmann2003sbr,
+  author  = {Hertzmann, Aaron},
+  title   = {A Survey of Stroke-Based Rendering},
+  journal = {IEEE Computer Graphics and Applications},
+  volume  = {23}, number = {4}, pages = {70--81}, year = {2003},
+  doi     = {10.1109/MCG.2003.1210867}
+}
+
+% Inventor names could not be verified (USPTO/Google Patents bot-gated); the
+% assignee is cited as author, which is factually safe. Read inventors from
+% Google Patents in a browser before citing them individually.
+@misc{adobe2012paintpatent,
+  author       = {{Adobe Systems Incorporated}},
+  title        = {Realistic Real-Time Simulation of Natural Media Paints},
+  howpublished = {U.S. Patent 8,335,675 B2 (assignee Adobe; filed 2009-02-27, granted 2012-12-18)},
+  year         = {2012}
+}
+
+% ---------------------------------------------------------------------------
+% Computational fabrication / relief flank (resolved via OpenAlex + Crossref)
+% ---------------------------------------------------------------------------
+
+@article{cignoni1997relief,
+  author  = {Cignoni, Paolo and Montani, Claudio and Scopigno, Roberto},
+  title   = {Computer-Assisted Generation of Bas- and High-Reliefs},
+  journal = {Journal of Graphics Tools},
+  volume  = {2}, number = {3}, pages = {15--28}, year = {1997},
+  doi     = {10.1080/10867651.1997.10487476}
+}
+
+@article{weyrich2007basrelief,
+  author  = {Weyrich, Tim and Deng, Jia and Barnes, Connelly and Rusinkiewicz, Szymon and Finkelstein, Adam},
+  title   = {Digital Bas-Relief from {3D} Scenes},
+  journal = {ACM Transactions on Graphics},
+  volume  = {26}, number = {3}, year = {2007},
+  doi     = {10.1145/1276377.1276417}
+}
+
+@article{sun2009basrelief,
+  author  = {Sun, Xianfang and Rosin, Paul L. and Martin, Ralph R. and Langbein, Frank C.},
+  title   = {Bas-Relief Generation Using Adaptive Histogram Equalization},
+  journal = {IEEE Transactions on Visualization and Computer Graphics},
+  volume  = {15}, number = {4}, pages = {642--653}, year = {2009},
+  doi     = {10.1109/TVCG.2009.21}
+}
+
+@article{kerber2012survey,
+  author  = {Kerber, Jens and Wang, Meili and Chang, Jian and Zhang, Jian J. and Belyaev, Alexander and Seidel, Hans-Peter},
+  title   = {Computer Assisted Relief Generation --- A Survey},
+  journal = {Computer Graphics Forum},
+  volume  = {31}, number = {8}, pages = {2363--2377}, year = {2012},
+  doi     = {10.1111/j.1467-8659.2012.03185.x}
+}
+
+@article{alexa2010reliefs,
+  author  = {Alexa, Marc and Matusik, Wojciech},
+  title   = {Reliefs as Images},
+  journal = {ACM Transactions on Graphics},
+  volume  = {29}, number = {4}, year = {2010},
+  doi     = {10.1145/1778765.1778797}
+}
+
+@article{schuller2014appearance,
+  author  = {Sch\"{u}ller, Christian and Panozzo, Daniele and Sorkine-Hornung, Olga},
+  title   = {Appearance-Mimicking Surfaces},
+  journal = {ACM Transactions on Graphics},
+  volume  = {33}, number = {6}, year = {2014},
+  doi     = {10.1145/2661229.2661267}
+}
+
+@article{zaman2014capture,
+  author  = {Zaman, Tim and Jonker, Pieter and Lenseigne, Boris and Dik, Joris},
+  title   = {Simultaneous Capture of the Color and Topography of Paintings Using Fringe Encoded Stereo Vision},
+  journal = {Heritage Science},
+  volume  = {2}, year = {2014},
+  doi     = {10.1186/s40494-014-0023-0}
+}
+
+@article{elkhuizen2019reproducing,
+  author  = {Elkhuizen, Willemijn S. and Essers, Tessa T. W. and Song, Yu and Geraedts, Jo M. P. and Weijkamp, Clemens and Dik, Joris and Pont, Sylvia C.},
+  title   = {Gloss, Color, and Topography Scanning for Reproducing a Painting's Appearance Using {3D} Printing},
+  journal = {ACM Journal on Computing and Cultural Heritage},
+  volume  = {12}, number = {4}, year = {2019},
+  doi     = {10.1145/3317949}
+}
+
+@article{matusik2009reflectance,
+  author  = {Matusik, Wojciech and Ajdin, Boris and Gu, Jinwei and Lawrence, Jason and Lensch, Hendrik P. A. and Pellacini, Fabio and Rusinkiewicz, Szymon},
+  title   = {Printing Spatially-Varying Reflectance},
+  journal = {ACM Transactions on Graphics},
+  volume  = {28}, number = {5}, year = {2009},
+  doi     = {10.1145/1618452.1618474}
+}
+
+@article{reichinger2011tactile,
+  author  = {Reichinger, Andreas and Maierhofer, Stefan and Purgathofer, Werner},
+  title   = {High-Quality Tactile Paintings},
+  journal = {ACM Journal on Computing and Cultural Heritage},
+  volume  = {4}, number = {2}, year = {2011},
+  doi     = {10.1145/2037820.2037822}
+}
+
+% --- "digital twin" term origin (cite precisely; see terminology note in paper) ---
+
+@incollection{grieves2017twin,
+  author    = {Grieves, Michael and Vickers, John},
+  title     = {Digital Twin: Mitigating Unpredictable, Undesirable Emergent Behavior in Complex Systems},
+  booktitle = {Transdisciplinary Perspectives on Complex Systems},
+  publisher = {Springer},
+  pages     = {85--113}, year = {2017},
+  doi       = {10.1007/978-3-319-38756-7_4}
+}
+
+@inproceedings{glaessgen2012twin,
+  author    = {Glaessgen, Edward and Stargel, David},
+  title     = {The Digital Twin Paradigm for Future {NASA} and {U.S.} Air Force Vehicles},
+  booktitle = {53rd AIAA/ASME/ASCE/AHS/ASC Structures, Structural Dynamics and Materials Conference},
+  year      = {2012},
+  doi       = {10.2514/6.2012-1818}
+}
+
+% ---------------------------------------------------------------------------
+% Robotic / machine painting flank (metadata via DBLP + Crossref; publisher
+% pages were bot-gated during the survey — verify landing pages before submit)
+% ---------------------------------------------------------------------------
+
+@inproceedings{deussen2012edavid,
+  author    = {Deussen, Oliver and Lindemeier, Thomas and Pirk, S\"{o}ren and Tautzenberger, Mark},
+  title     = {Feedback-Guided Stroke Placement for a Painting Machine},
+  booktitle = {Proceedings of Computational Aesthetics (CAe)},
+  year      = {2012},
+  doi       = {10.2312/COMPAESTH/COMPAESTH12/025-033}
+}
+
+@article{lindemeier2015edavid,
+  author  = {Lindemeier, Thomas and Metzner, Jens and Pollak, Lena and Deussen, Oliver},
+  title   = {Hardware-Based Non-Photorealistic Rendering Using a Painting Robot},
+  journal = {Computer Graphics Forum},
+  volume  = {34}, number = {2}, pages = {311--323}, year = {2015},
+  doi     = {10.1111/cgf.12562}
+}
+
+@inproceedings{schaldenbrand2023frida,
+  author    = {Schaldenbrand, Peter and McCann, James and Oh, Jean},
+  title     = {{FRIDA}: A Collaborative Robot Painter with a Differentiable, Real2Sim2Real Planning Environment},
+  booktitle = {IEEE International Conference on Robotics and Automation (ICRA)},
+  year      = {2023},
+  doi       = {10.1109/ICRA48891.2023.10160702},
+  note      = {arXiv:2210.00664}
+}
+
+@misc{wang2026impasto,
+  author = {Wang, Yingke and Li, Hao and Zhu, Yifeng and Yu, Hong-Xing and Goldberg, Ken and Fei-Fei, Li and Wu, Jiajun and Li, Yunzhu and Zhang, Ruohan},
+  title  = {{IMPASTO}: Integrating Model-Based Planning with Learned Dynamics Models for Robotic Oil Painting Reproduction},
+  year   = {2026},
+  note   = {arXiv:2603.29315 --- PREPRINT (submitted 2026-03-31), not peer-reviewed; concurrent work; name collides with IMPaSTo (Baxter 2004)}
+}
+
+@article{karimov2024brush,
+  author  = {Karimov, Artur and Strelnikov, Maksim and Mazin, Sergei and Goryunov, Dmitriy and Leonov, Sergey and Butusov, Denis},
+  title   = {Physically Motivated Model of a Painting Brush for Robotic Painting and Calligraphy},
+  journal = {Robotics},
+  volume  = {13}, number = {6}, pages = {94}, year = {2024},
+  doi     = {10.3390/robotics13060094}
+}
+
+@article{chancharoen2022twin,
+  author  = {Chancharoen, Ratchatin and Chaiprabha, Kantawatchr and Wuttisittikulkij, Lunchakorn and Asdornwised, Widhyakorn and Saadi, Muhammad and Phanomchoeng, Gridsada},
+  title   = {Digital Twin for a Collaborative Painting Robot},
+  journal = {Sensors},
+  volume  = {23}, number = {1}, pages = {17}, year = {2022},
+  doi     = {10.3390/s23010017}
+}
+
+@article{prevost2016painting,
+  author  = {Pr\'{e}vost, Romain and Jacobson, Alec and Jarosz, Wojciech and Sorkine-Hornung, Olga},
+  title   = {Large-Scale Painting of Photographs by Interactive Optimization},
+  journal = {Computers \& Graphics},
+  volume  = {55}, pages = {108--117}, year = {2016},
+  doi     = {10.1016/j.cag.2015.11.001}
+}
+
+@article{vempati2018paintcopter,
+  author  = {Vempati, Anurag Sai and Kamel, Mina and Stilinovic, Nikola and Zhang, Qixuan and Reusser, Dorothea and Sa, Inkyu and Nieto, Juan and Siegwart, Roland and Beardsley, Paul},
+  title   = {{PaintCopter}: An Autonomous {UAV} for Spray Painting on Three-Dimensional Surfaces},
+  journal = {IEEE Robotics and Automation Letters},
+  volume  = {3}, number = {4}, pages = {2862--2869}, year = {2018},
+  doi     = {10.1109/LRA.2018.2846278}
+}
+
+@inproceedings{chen2022gtgraffiti,
+  author    = {Chen, Gerry and Baek, Sereym and Florez, Juan-Diego and Qian, Wanli and Leigh, Sang-won and Hutchinson, Seth and Dellaert, Frank},
+  title     = {{GTGraffiti}: Spray Painting Graffiti Art from Human Painting Motions with a Cable Driven Parallel Robot},
+  booktitle = {IEEE International Conference on Robotics and Automation (ICRA)},
+  pages     = {4065--4072},
+  year      = {2022},
+  doi       = {10.1109/ICRA46639.2022.9812008},
+  note      = {arXiv:2109.06238}
+}
+
+@article{gulzow2020survey,
+  author  = {G\"{u}lzow, Jörg Marvin and Paetzold, Patrick and Deussen, Oliver},
+  title   = {Recent Developments Regarding Painting Robots for Research in Automatic Painting, Artificial Creativity, and Machine Learning},
+  journal = {Applied Sciences},
+  volume  = {10}, number = {10}, pages = {3396}, year = {2020},
+  doi     = {10.3390/app10103396}
+}
+
+@article{bickel2018fabrication,
+  author  = {Bickel, Bernd and Cignoni, Paolo and Malomo, Luigi and Pietroni, Nico},
+  title   = {State of the Art on Stylized Fabrication},
+  journal = {Computer Graphics Forum},
+  volume  = {37}, number = {6}, pages = {325--342}, year = {2018},
+  doi     = {10.1111/cgf.13327}
+}
+
+% ---------------------------------------------------------------------------
+% Historical pioneers: algorithmic drawing/painting machines (1959-1995).
+% Verified against Crossref/JSTOR/MIT Press + scholarly histories. These are the
+% DEEP prior art for "a program drives a machine to make a real artwork".
+% ---------------------------------------------------------------------------
+
+@book{mccorduck1991aaron,
+  author    = {McCorduck, Pamela},
+  title     = {Aaron's Code: Meta-Art, Artificial Intelligence, and the Work of Harold Cohen},
+  publisher = {W. H. Freeman},
+  address   = {New York},
+  year      = {1991},
+  isbn      = {9780716721734}
+}
+
+% cohen1995: page range differs by source (ACM DL 141--158 vs SCIRP 141--160);
+% 141--158 used. Full text historically at cs.uml.edu (TLS cert broken at check);
+% the 1995 dye-mixing painting machine is documented here + CHM archives.
+@article{cohen1995furtherexploits,
+  author  = {Cohen, Harold},
+  title   = {The Further Exploits of {AARON}, Painter},
+  journal = {Stanford Humanities Review},
+  volume  = {4}, number = {2}, pages = {141--158}, year = {1995}
+}
+
+@article{verostko1990epigenetic,
+  author    = {Verostko, Roman},
+  title     = {Epigenetic Painting: Software as Genotype},
+  journal   = {Leonardo},
+  volume    = {23}, number = {1}, pages = {17--23}, year = {1990},
+  publisher = {The MIT Press},
+  doi       = {10.2307/1578459}
+}
+
+@article{noll2016howardwise,
+  author    = {Noll, A. Michael},
+  title     = {The {Howard Wise} Gallery Show \emph{Computer-Generated Pictures} (1965): A 50th-Anniversary Memoir},
+  journal   = {Leonardo},
+  volume    = {49}, number = {3}, pages = {232--239}, year = {2016},
+  publisher = {The MIT Press},
+  doi       = {10.1162/leon_a_01158}
+}
+
+@book{taylor2014machine,
+  author    = {Taylor, Grant D.},
+  title     = {When the Machine Made Art: The Troubled History of Computer Art},
+  publisher = {Bloomsbury Academic},
+  address   = {New York},
+  year      = {2014},
+  isbn      = {9781623568849}
+}
