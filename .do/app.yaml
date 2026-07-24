@@ -11,7 +11,7 @@ region: nyc
 static_sites:
   - name: web
     github:
-      repo: dnewcome/entropy-brush
+      repo: dnuke-art/entropy-brush
       branch: web-deploy
       deploy_on_push: true
     source_dir: /
