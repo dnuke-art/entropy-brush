@@ -16,14 +16,30 @@ import 'twin/twin_performance.dart';
 /// renderer together. The widget feeds it pointer samples in *grid* coordinates
 /// and pumps [frame] once per vsync; everything else lives here.
 class PaintController extends ChangeNotifier {
-  PaintController({int gridSize = 768, int paletteSize = 240})
+  /// Sim grid resolution presets. Higher = crisper relief but heavier per
+  /// frame: both the flow sim and the relief-texture rebuild cost O(size²).
+  static const int qualityLow = 384;
+  static const int qualityMed = 512;
+  static const int qualityHigh = 768;
+
+  PaintController({int gridSize = qualityHigh, int paletteSize = 240})
       : grid = PaintGrid(gridSize, gridSize),
         palette = PaintGrid(paletteSize, paletteSize, maxHeight: 4.0)
           ..profile = PaintProfile(body: 1.0, lumpiness: 0.0, opacity: 1.4)
           ..generateCanvasTexture(amplitude: 0.0), // palette stays smooth
-        brush = Brush(BrushConfig());
+        brush = Brush(BrushConfig()) {
+    // Brush geometry is authored in grid px at the High reference resolution;
+    // scale it so a stroke covers the same fraction of the canvas at any
+    // starting quality (e.g. the lighter web default).
+    if (gridSize != qualityHigh) {
+      final double ratio = gridSize / qualityHigh;
+      brush.config.headRadius *= ratio;
+      brush.config.bristleLength *= ratio;
+      brush.rebuildBristles();
+    }
+  }
 
-  final PaintGrid grid;
+  PaintGrid grid;
   final Brush brush;
   final LightSettings light = LightSettings();
 
@@ -58,6 +74,39 @@ class PaintController extends ChangeNotifier {
       _renderingImage = false;
       notifyListeners();
     });
+  }
+
+  // --- render quality (sim grid resolution) ---------------------------------
+  int get gridQuality => grid.width;
+
+  /// Switch the sim grid to [size]×[size], preserving the current painting by
+  /// bilinear-resampling it into the new grid. Both the relief-texture rebuild
+  /// and the flow sim cost O(size²), so this is the main performance lever:
+  /// lower it for smooth spin/drips on web/VR, raise it for crisper relief.
+  void setQuality(int size) {
+    if (size == grid.width) return;
+    // Don't carry a live stroke/pour across the coordinate-space change.
+    if (_stroking) _doEnd();
+    _pouring = false;
+    final old = grid;
+    final double ratio = size / old.width;
+    final ng = PaintGrid(size, size, maxHeight: old.maxHeight);
+    ng.profile = old.profile; // keep the user's paint (body/viscosity/…) settings
+    ng.dripPhase = old.dripPhase;
+    ng.generateCanvasTexture(
+        amplitude: canvasAmplitude, scale: canvasScale, seed: _canvasSeed);
+    ng.resampleFrom(old);
+    grid = ng;
+    // Keep brush marks the same fraction of the canvas at the new resolution.
+    brush.config.headRadius *= ratio;
+    brush.config.bristleLength *= ratio;
+    brush.rebuildBristles();
+    reliefImage?.dispose();
+    reliefImage = null;
+    _renderingImage = false;
+    _reliefAccum = 0;
+    _requestReliefImage();
+    notifyListeners();
   }
 
   // --- view: tilt, zoom, pan ---
@@ -550,6 +599,14 @@ class PaintController extends ChangeNotifier {
   bool spinCW = false; // rotation direction (sets the spiral handedness)
   final Stopwatch _frameClock = Stopwatch()..start();
 
+  // The relief texture rebuild (encode + GPU upload + offscreen render) is the
+  // heaviest per-frame cost, and during continuous animation it would otherwise
+  // run every frame. Cap it to ~30 fps; the on-screen canvas still rotates at
+  // full frame rate via the slab transform (it just re-textures with whatever
+  // relief image is current), so the throttle is invisible.
+  double _reliefAccum = 0;
+  static const double _reliefMinInterval = 1 / 30.0;
+
   /// Pump one frame: advance replay/squeeze, run wet-paint flow, then refresh
   /// GPU textures for whichever surface changed.
   void frame() {
@@ -625,7 +682,16 @@ class PaintController extends ChangeNotifier {
       }
     }
 
-    if (grid.isDirty) _requestReliefImage();
+    // Continuous-animation modes redraw the paint every frame; throttle the
+    // costly relief rebuild to ~30 fps there. One-off edits (a brush stroke)
+    // still refresh immediately so painting stays crisp and responsive.
+    _reliefAccum += dt;
+    final bool continuous =
+        spinning || _pouring || _squirting || gravityDrips || _replaying;
+    if (grid.isDirty && (!continuous || _reliefAccum >= _reliefMinInterval)) {
+      _reliefAccum = 0;
+      _requestReliefImage();
+    }
     if (palette.isDirty) _requestPaletteUpload();
     // Keep the view turning while spinning even if no paint is moving (e.g. all
     // dried) — the canvas orientation itself is animating.

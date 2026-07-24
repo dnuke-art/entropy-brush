@@ -54,6 +54,10 @@ class PaintGrid {
   // Scratch buffers for the flow step (allocated lazily, reused each frame).
   Float32List? _dH, _inA, _inR, _inG, _inB, _inW;
 
+  // Reused RGBA encode buffers so the per-frame texture upload doesn't allocate
+  // ~2.4 MB twice every frame (which pins the GC, worst on web/VR).
+  Uint8List? _heightBuf, _albedoBuf;
+
   void _wetTouch(int x, int y) {
     wet[y * width + x] = 1.0;
     if (!_hasWet) {
@@ -621,11 +625,86 @@ class PaintGrid {
     }
   }
 
+  /// Resample the paint from [src] into this grid (bilinear), so a resolution
+  /// change preserves the current painting instead of clearing it. Only the
+  /// paint layers move here (thickness / colour / wetness); the canvas substrate
+  /// is regenerated separately by the caller. Recomputes the wet bounding box so
+  /// the flow sim keeps working after the swap.
+  void resampleFrom(PaintGrid src) {
+    final double fx = src.width / width;
+    final double fy = src.height / height;
+    bool anyWet = false;
+    int minX = width, minY = height, maxX = 0, maxY = 0;
+    for (int y = 0; y < height; y++) {
+      double syf = (y + 0.5) * fy - 0.5;
+      if (syf < 0) syf = 0;
+      if (syf > src.height - 1) syf = src.height - 1.0;
+      final int sy0 = syf.floor();
+      final int sy1 = math.min(sy0 + 1, src.height - 1);
+      final double wy = syf - sy0;
+      for (int x = 0; x < width; x++) {
+        double sxf = (x + 0.5) * fx - 0.5;
+        if (sxf < 0) sxf = 0;
+        if (sxf > src.width - 1) sxf = src.width - 1.0;
+        final int sx0 = sxf.floor();
+        final int sx1 = math.min(sx0 + 1, src.width - 1);
+        final double wx = sxf - sx0;
+
+        final int i00 = sy0 * src.width + sx0;
+        final int i01 = sy0 * src.width + sx1;
+        final int i10 = sy1 * src.width + sx0;
+        final int i11 = sy1 * src.width + sx1;
+        final double w00 = (1 - wx) * (1 - wy);
+        final double w01 = wx * (1 - wy);
+        final double w10 = (1 - wx) * wy;
+        final double w11 = wx * wy;
+
+        final int di = y * width + x;
+        thickness[di] = src.thickness[i00] * w00 +
+            src.thickness[i01] * w01 +
+            src.thickness[i10] * w10 +
+            src.thickness[i11] * w11;
+        r[di] = src.r[i00] * w00 +
+            src.r[i01] * w01 +
+            src.r[i10] * w10 +
+            src.r[i11] * w11;
+        g[di] = src.g[i00] * w00 +
+            src.g[i01] * w01 +
+            src.g[i10] * w10 +
+            src.g[i11] * w11;
+        b[di] = src.b[i00] * w00 +
+            src.b[i01] * w01 +
+            src.b[i10] * w10 +
+            src.b[i11] * w11;
+        final double wv = src.wet[i00] * w00 +
+            src.wet[i01] * w01 +
+            src.wet[i10] * w10 +
+            src.wet[i11] * w11;
+        wet[di] = wv;
+        if (wv > 0.004) {
+          anyWet = true;
+          if (x < minX) minX = x;
+          if (y < minY) minY = y;
+          if (x > maxX) maxX = x;
+          if (y > maxY) maxY = y;
+        }
+      }
+    }
+    _hasWet = anyWet;
+    if (anyWet) {
+      _wetMinX = minX;
+      _wetMinY = minY;
+      _wetMaxX = maxX;
+      _wetMaxY = maxY;
+    }
+    _dirtyAll();
+  }
+
   // --- texture encoding for the relief shader ---
 
   /// RGBA8 buffer with thickness packed 16-bit into R (high) + G (low).
   Uint8List encodeHeightRGBA() {
-    final out = Uint8List(width * height * 4);
+    final out = _heightBuf ??= Uint8List(width * height * 4);
     final double inv = 1.0 / maxHeight;
     for (int i = 0, p = 0; i < thickness.length; i++, p += 4) {
       double h = (canvasHeight[i] + thickness[i]) * inv;
@@ -648,7 +727,7 @@ class PaintGrid {
 
   /// RGBA8 buffer of the surface pigment colour.
   Uint8List encodeAlbedoRGBA() {
-    final out = Uint8List(width * height * 4);
+    final out = _albedoBuf ??= Uint8List(width * height * 4);
     for (int i = 0, p = 0; i < thickness.length; i++, p += 4) {
       // _u8 clamps and rejects non-finite values, so a stray NaN can't crash
       // `.round()` here either.

@@ -27,7 +27,11 @@ jobs:
           channel: stable
 
       - run: flutter pub get
-      - run: flutter build web --release --base-href /
+      # --wasm compiles the Dart to WebAssembly (faster tight numeric loops,
+      # e.g. the paint-flow sim) and emits a dart2js JS bundle alongside it;
+      # flutter_bootstrap.js loads wasm where WasmGC is supported and falls back
+      # to JS otherwise, so older browsers are unaffected.
+      - run: flutter build web --wasm --release --base-href /
 
       # Publish build/web to the web-deploy branch (single clean commit).
       - uses: peaceiris/actions-gh-pages@v4

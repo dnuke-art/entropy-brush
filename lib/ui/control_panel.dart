@@ -80,9 +80,40 @@ class _ControlPanelState extends State<ControlPanel> {
               color: Colors.teal.shade700,
               borderRadius: BorderRadius.circular(4),
             ),
-            child: const Text('build: entropybrush · 06-24 #31',
+            child: const Text('build: entropybrush · 07-24 #32',
                 style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
           ),
+          const SizedBox(height: 16),
+
+          _heading('Performance'),
+          AnimatedBuilder(
+            animation: c,
+            builder: (context, _) => Align(
+              alignment: Alignment.centerLeft,
+              child: SegmentedButton<int>(
+                showSelectedIcon: false,
+                style: const ButtonStyle(
+                  visualDensity: VisualDensity.compact,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                segments: const [
+                  ButtonSegment(
+                      value: PaintController.qualityLow, label: Text('Low')),
+                  ButtonSegment(
+                      value: PaintController.qualityMed, label: Text('Med')),
+                  ButtonSegment(
+                      value: PaintController.qualityHigh, label: Text('High')),
+                ],
+                selected: {c.gridQuality},
+                onSelectionChanged: (s) => setState(() => c.setQuality(s.first)),
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+              'grid resolution · lower = smoother spin & drips (esp. web/VR), '
+              'higher = crisper relief',
+              style: TextStyle(fontSize: 10, color: Colors.white30)),
           const SizedBox(height: 16),
 
           _heading('Pigment'),

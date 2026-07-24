@@ -1,9 +1,11 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
 import 'paint_controller.dart';
+import 'sim/paint_grid.dart';
 import 'ui/control_panel.dart';
 import 'ui/paint_canvas.dart';
 
@@ -42,7 +44,11 @@ class _HomePageState extends State<HomePage>
   @override
   void initState() {
     super.initState();
-    controller = PaintController();
+    // Default to a lighter grid on web (incl. VR browsers like Quest), where the
+    // CPU sim + CanvasKit image round-trips run ~2–4× costlier than desktop.
+    controller = PaintController(
+        gridSize:
+            kIsWeb ? PaintController.qualityMed : PaintController.qualityHigh);
     _ticker = createTicker((_) => controller.frame());
     _ticker.start();
     _init();
@@ -56,6 +62,49 @@ class _HomePageState extends State<HomePage>
     controller.brush.config.infiniteLoad = true;
     controller.reloadBrush();
     if (mounted) setState(() {});
+    // Dev-only sim micro-benchmark: load with ?bench to time the spin flow step
+    // under whatever compiler this bundle is (dart2js vs dart2wasm). Results go
+    // to the browser console. Never runs in normal use.
+    if (Uri.base.queryParameters.containsKey('bench')) _benchmark();
+  }
+
+  /// Time [PaintGrid.flowStep] on a fully-wet grid running the spin body-force
+  /// path (the real spin-art hot loop). Reports best-of-N so JIT warmup and
+  /// browser clock-clamp noise don't dominate.
+  void _benchmark() {
+    for (final n in const [512]) {
+      final g = PaintGrid(n, n);
+      final double cx = n / 2.0, cy = n / 2.0;
+      // Cover a big chunk of the grid with thick wet paint so the wet bbox is
+      // large (a canvas mid-spin-art, paint flung across most of the surface).
+      g.pile(cx, cy, n * 0.38, n * n * 0.02, 0.2, 0.4, 0.8);
+      void step() => g.flowStep(1 / 60,
+          flow: 0.03,
+          dryTime: 1e9, // never dry, so the grid stays fully active across steps
+          spinCf: 0.02,
+          spinCor: 0.01,
+          spinCx: cx,
+          spinCy: cy);
+      for (int i = 0; i < 15; i++) {
+        step(); // warmup
+      }
+      const int trials = 4, steps = 30;
+      double best = double.infinity;
+      for (int t = 0; t < trials; t++) {
+        final sw = Stopwatch()..start();
+        for (int i = 0; i < steps; i++) {
+          step();
+        }
+        sw.stop();
+        final double ms = sw.elapsedMicroseconds / 1000.0;
+        if (ms < best) best = ms;
+      }
+      final double perStep = best / steps;
+      // ignore: avoid_print
+      print('BENCH grid=$n²  ${perStep.toStringAsFixed(3)} ms/step  '
+          '(${(1000 / perStep).toStringAsFixed(0)} steps/s, '
+          'best ${best.toStringAsFixed(1)} ms / $steps steps)');
+    }
   }
 
   @override

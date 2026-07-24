@@ -1,8 +1,9 @@
 import 'dart:convert';
-// ignore: deprecated_member_use, avoid_web_libraries_in_flutter
-import 'dart:html' as html;
+import 'dart:js_interop';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
+
+import 'package:web/web.dart' as web;
 
 import '../render/relief_renderer.dart';
 import '../sim/paint_grid.dart';
@@ -13,6 +14,9 @@ import 'stl_export.dart';
 /// Web exporter: instead of writing to a folder, each "save" streams the bytes
 /// straight to a browser download. Returns the download filename so the UI can
 /// report it (same call shape as the desktop exporter).
+///
+/// Uses `package:web` + `dart:js_interop` (not `dart:html`) so the app compiles
+/// under dart2wasm as well as dart2js.
 class Exporter {
   static String _stamp() {
     final n = DateTime.now();
@@ -22,12 +26,16 @@ class Exporter {
 
   static void _download(String filename, List<int> bytes, String mime) {
     final data = bytes is Uint8List ? bytes : Uint8List.fromList(bytes);
-    final blob = html.Blob(<Object>[data], mime);
-    final url = html.Url.createObjectUrlFromBlob(blob);
-    html.AnchorElement(href: url)
+    final blob = web.Blob(
+      <JSAny>[data.toJS].toJS,
+      web.BlobPropertyBag(type: mime),
+    );
+    final url = web.URL.createObjectURL(blob);
+    (web.document.createElement('a') as web.HTMLAnchorElement)
+      ..href = url
       ..download = filename
       ..click();
-    html.Url.revokeObjectUrl(url);
+    web.URL.revokeObjectURL(url);
   }
 
   static Future<String> savePng(PaintGrid grid, ReliefRenderer renderer,
