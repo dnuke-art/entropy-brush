@@ -46,3 +46,8 @@ app.*.map.json
 
 # Local agent / editor settings
 .claude/
+
+# Python virtualenv (for the tools/ sidecars) — regenerable, and its scripts
+# hardcode an absolute path, so it must not be tracked.
+.venv/
+venv/
