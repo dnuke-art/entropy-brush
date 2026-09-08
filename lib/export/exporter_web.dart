@@ -80,4 +80,11 @@ class Exporter {
     _download(name, utf8.encode(perf.encode()), 'application/json');
     return name;
   }
+
+  static bool get isMobile => false;
+
+  /// Web downloads already delivered the file to the browser, so there is
+  /// nothing to share. Kept for facade parity with the io exporter.
+  static Future<bool> share(List<String> paths, {ui.Rect? origin}) async =>
+      false;
 }

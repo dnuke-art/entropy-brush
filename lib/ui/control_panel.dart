@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../export/exporter.dart';
 import '../paint_controller.dart';
 import 'palette_canvas.dart';
 
@@ -46,8 +47,16 @@ class _ControlPanelState extends State<ControlPanel> {
     try {
       final path = await fn();
       if (!mounted) return;
+      // On mobile hand the file to the share sheet (anchored to this panel on
+      // iPad); on desktop it's already in a visible folder, so report the path.
+      final box = context.findRenderObject() as RenderBox?;
+      final origin = (box != null && box.hasSize)
+          ? box.localToGlobal(Offset.zero) & box.size
+          : null;
+      final shared = await Exporter.share([path], origin: origin);
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Saved $kind → $path')),
+        SnackBar(content: Text(shared ? 'Exported $kind' : 'Saved $kind → $path')),
       );
     } catch (e) {
       if (!mounted) return;

@@ -66,8 +66,10 @@ spin perf before submitting**.
       Placeholder — may revisit the art.
 - [ ] iPad UX pass: control panel + canvas sizing for touch, safe-area insets,
       verify the relief FragmentShader renders under Impeller on iOS.
-- [ ] Verify STL/PNG export works under the iOS sandbox (share sheet / Files),
-      not just desktop dart:io paths.
+- [x] Fixed iOS export: was writing to a desktop `~/entropybrush-exports` path
+      that fails in the sandbox. Now `exporter_io.dart` writes to the app's temp
+      dir on mobile and hands files to the system share sheet (`share_plus` +
+      `path_provider`); desktop keeps the visible folder. Needs on-device check.
 
 **Phase 3 — release pipeline (skill automates)**
 - [x] `.github/workflows/ios.yml` (tag `ios-v*`, `runs-on: macos-26`, imports the
