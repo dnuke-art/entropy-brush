@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="canvas" x1="0" y1="0" x2="0" y2="1024" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F0E8D7"/>
+      <stop offset="1" stop-color="#DFD2B8"/>
+    </linearGradient>
+    <linearGradient id="paint" x1="250" y1="800" x2="812" y2="235" gradientUnits="userSpaceOnUse">
+      <stop offset="0"    stop-color="#9E1B43"/>
+      <stop offset="0.45" stop-color="#E0442A"/>
+      <stop offset="1"    stop-color="#F2A833"/>
+    </linearGradient>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="17"/>
+    </filter>
+    <!-- roughen outlines so the paint reads as bristled impasto, not a plastic tube -->
+    <filter id="rough" x="-25%" y="-25%" width="150%" height="150%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.009 0.03" numOctaves="2" seed="11" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="26" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <filter id="tooth" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.5 0"/>
+    </filter>
+  </defs>
+
+  <rect width="1024" height="1024" fill="url(#canvas)"/>
+  <rect width="1024" height="1024" fill="url(#canvas)" filter="url(#tooth)" opacity="0.10"/>
+
+  <!-- cast shadow (kept smooth, just lifts the paint) -->
+  <path d="M250,800 C400,690 470,560 560,470 C650,380 735,300 812,240"
+        fill="none" stroke="#2E211B" stroke-width="188" stroke-linecap="round"
+        transform="translate(16,26)" filter="url(#soft)" opacity="0.24"/>
+
+  <!-- the painterly body: everything here gets the rough displacement -->
+  <g filter="url(#rough)">
+    <!-- frayed dry-brush tail at the top-right (paint running out) -->
+    <g fill="none" stroke="url(#paint)" stroke-linecap="round">
+      <path d="M740,300 C790,255 830,215 900,175" stroke-width="30" opacity="0.9"/>
+      <path d="M755,320 C815,275 860,250 930,225" stroke-width="20" opacity="0.8"/>
+      <path d="M735,330 C800,300 850,285 915,275" stroke-width="16" opacity="0.7"/>
+      <path d="M760,290 C820,240 855,210 905,155" stroke-width="12" opacity="0.7"/>
+    </g>
+
+    <!-- main loaded stroke -->
+    <path d="M250,800 C400,690 470,560 560,470 C650,380 735,300 812,240"
+          fill="none" stroke="url(#paint)" stroke-width="188" stroke-linecap="round"/>
+    <!-- fatten the middle so it tapers toward the ends (a swipe, not a tube) -->
+    <path d="M330,720 C430,640 500,560 590,470 C660,398 715,345 760,300"
+          fill="none" stroke="url(#paint)" stroke-width="212" stroke-linecap="round"/>
+
+    <!-- rounded underside shadow -->
+    <path d="M250,800 C400,690 470,560 560,470 C650,380 735,300 812,240"
+          fill="none" stroke="#5F1029" stroke-width="150" stroke-linecap="round"
+          transform="translate(14,20)" opacity="0.32"/>
+
+    <!-- bristle grooves dragged through the paint -->
+    <g fill="none" stroke-linecap="round">
+      <path d="M300,760 C430,660 500,560 590,470 C670,392 740,320 790,275" stroke="#7C1533" stroke-width="9" opacity="0.34" transform="translate(24,30)"/>
+      <path d="M300,760 C430,660 500,560 590,470 C670,392 740,320 790,275" stroke="#8A182F" stroke-width="7" opacity="0.30" transform="translate(46,54)"/>
+      <path d="M300,760 C430,660 500,560 590,470 C670,392 740,320 790,275" stroke="#FBD08A" stroke-width="7" opacity="0.40" transform="translate(-14,-16)"/>
+    </g>
+
+    <!-- broken impasto highlights catching light on the ridges (not one gloss line) -->
+    <g fill="none" stroke="#FFEBCB" stroke-linecap="round" stroke-dasharray="70 46">
+      <path d="M285,760 C420,655 495,555 585,465 C665,388 735,318 795,262"
+            stroke-width="34" opacity="0.6" transform="translate(-16,-22)"/>
+    </g>
+  </g>
+
+</svg>
