@@ -599,6 +599,32 @@ class PaintController extends ChangeNotifier {
   bool spinCW = false; // rotation direction (sets the spiral handedness)
   final Stopwatch _frameClock = Stopwatch()..start();
 
+  // Spin floods the whole canvas with wet paint, so a flow step goes from
+  // touching a tiny wet bbox to the entire O(grid²) field — the one mode that
+  // tanks the frame rate (worst on weaker mobile GPUs). But spin is fast and
+  // motion-blurred, so it doesn't need full relief resolution. While spinning we
+  // drop to [spinQuality] and restore the prior resolution when it stops;
+  // setQuality bilinear-resamples so the painting is preserved across the swap.
+  bool autoSpinQuality = true;
+  int spinQuality = qualityLow;
+  bool _wasSpinning = false;
+  int _qualityBeforeSpin = 0; // resolution to restore on spin stop; 0 = none
+
+  void _syncSpinQuality() {
+    if (spinning == _wasSpinning) return;
+    _wasSpinning = spinning;
+    if (spinning) {
+      if (autoSpinQuality && grid.width > spinQuality) {
+        _qualityBeforeSpin = grid.width;
+        setQuality(spinQuality);
+      }
+    } else if (_qualityBeforeSpin != 0) {
+      // Always restore if we dropped, even if auto-quality was toggled off mid-spin.
+      setQuality(_qualityBeforeSpin);
+      _qualityBeforeSpin = 0;
+    }
+  }
+
   // The relief texture rebuild (encode + GPU upload + offscreen render) is the
   // heaviest per-frame cost, and during continuous animation it would otherwise
   // run every frame. Cap it to ~30 fps; the on-screen canvas still rotates at
@@ -610,6 +636,7 @@ class PaintController extends ChangeNotifier {
   /// Pump one frame: advance replay/squeeze, run wet-paint flow, then refresh
   /// GPU textures for whichever surface changed.
   void frame() {
+    _syncSpinQuality();
     if (_replaying) _advanceReplay();
     if (_squirting) _squirt();
     if (_pouring) _pour();

@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart'
+    show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
@@ -44,11 +45,15 @@ class _HomePageState extends State<HomePage>
   @override
   void initState() {
     super.initState();
-    // Default to a lighter grid on web (incl. VR browsers like Quest), where the
-    // CPU sim + CanvasKit image round-trips run ~2–4× costlier than desktop.
+    // Default to a lighter grid on web (incl. VR browsers like Quest) and on
+    // mobile (iPad/iPhone), where the CPU sim + image round-trips run ~2–4×
+    // costlier than desktop; full resolution is desktop-only.
+    final bool isMobile = defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.android;
     controller = PaintController(
-        gridSize:
-            kIsWeb ? PaintController.qualityMed : PaintController.qualityHigh);
+        gridSize: (kIsWeb || isMobile)
+            ? PaintController.qualityMed
+            : PaintController.qualityHigh);
     _ticker = createTicker((_) => controller.frame());
     _ticker.start();
     _init();
