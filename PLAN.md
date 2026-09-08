@@ -57,6 +57,13 @@ spin perf before submitting**.
 - [ ] **On-device tuning (TestFlight):** measure spin on the target iPad and
       lower `spinQuality` (→256?) and/or the base grid if needed — mobile CPU is
       weaker than the desktop numbers above; can't measure it from Linux.
+- [x] iPad touch gestures (`paint_canvas.dart`): 1 finger paints (tap=dab,
+      drag=stroke); 2 fingers pan + pinch-zoom (midpoint-anchored); strokes
+      deferred until move/lift so framing leaves no stray dab. Orbit gizmo
+      enlarged 78→112 (separate widget → orbit+paint simultaneously still works).
+      Shipped in build 34272470976 (TestFlight, 2026-09-08) — needs on-device feel check.
+- [x] App icon wired in (impasto brushstroke; source at `ios/appstore/icon.svg`).
+      Placeholder — may revisit the art.
 - [ ] iPad UX pass: control panel + canvas sizing for touch, safe-area insets,
       verify the relief FragmentShader renders under Impeller on iOS.
 - [ ] Verify STL/PNG export works under the iOS sandbox (share sheet / Files),
@@ -69,13 +76,22 @@ spin perf before submitting**.
       → TestFlight. `ios/ExportOptionsCI.plist` = app-store-connect/upload/auto.
       Modeled on `dnewcome/curiate`; CI gate is `flutter analyze` (repo's tests
       are diagnostic scripts that make `flutter test` exit non-zero).
-- [ ] **Dan sets 5 repo secrets** on `dnuke-art/entropy-brush` (see the reuse
-      block in the `app-store-release` skill): `APP_STORE_CONNECT_P8`,
-      `APP_STORE_CONNECT_KEY_ID` (737KQRD655), `APP_STORE_CONNECT_ISSUER_ID`,
-      `IOS_P12_BASE64`, `IOS_P12_PASSWORD` — all read from `~/private_keys/`.
-- [x] Register the App ID `com.dnuke.entropybrush` (done via ASC API — `GXPQ9QQ846`).
-- [ ] Create the app record in App Store Connect (My Apps → + → pick bundle
-      `com.dnuke.entropybrush`), then `git tag ios-v1.0.0 && git push origin ios-v1.0.0`.
+- [x] 5 repo secrets set on `dnuke-art/entropy-brush` (`APP_STORE_CONNECT_P8`,
+      `APP_STORE_CONNECT_KEY_ID` 737KQRD655, `APP_STORE_CONNECT_ISSUER_ID`,
+      `IOS_P12_BASE64`, `IOS_P12_PASSWORD`).
+- [x] Register the App ID `com.dnuke.entropybrush` (ASC API — `GXPQ9QQ846`).
+- [x] Create the ASC app record (SKU `entropybrush-ios-001`, Full access).
+- [x] **First build green**: tag `ios-v1.0.0` → Actions run #34267429826 succeeded
+      (macos-26, persistent-cert import + archive + upload all passed); IPA
+      uploaded to TestFlight 2026-09-08. Built on branch `ios-app-setup`.
+      (Minor: `actions/checkout@v4.2.2` throws a Node-20 deprecation warning —
+      bump to `@v5` eventually.)
+- [ ] Merge `ios-app-setup` → `main` now that the build is proven green.
+- [ ] TestFlight internal testing: create/enable an internal group + automatic
+      distribution, add self as tester, install via TestFlight app on the iPad.
+- [ ] On-device: feel the spin perf; tune `spinQuality` (→256?) if needed.
+- [ ] Screenshots (iPad 13", no alpha) + ASC listing via `tools/asc_listing.py`,
+      then App Privacy + Submit.
 - [ ] Screenshots at the app's own iPad 13" render size (2064×2752), no alpha.
 - [ ] Fill App Store Connect via `tools/asc_listing.py` (metadata/, screenshots/).
 - [ ] Manual clicks: App Privacy questionnaire + Submit for Review.
