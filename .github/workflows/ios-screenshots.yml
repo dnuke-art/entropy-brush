@@ -59,7 +59,10 @@ jobs:
             --target=integration_test/screenshots_test.dart \
             -d ${{ steps.sim.outputs.udid }}
 
+      # Upload even if the capture test reported failures — the PNGs are written
+      # as each screenshot is taken, so we still want to see them.
       - name: Strip alpha + report sizes
+        if: always()
         run: |
           shopt -s nullglob
           for f in ios/appstore/screenshots/ipad-13/*.png; do
@@ -68,6 +71,7 @@ jobs:
           done
 
       - name: Upload screenshots
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: appstore-screenshots-ipad-13
