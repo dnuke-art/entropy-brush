@@ -1,0 +1,10 @@
+entropybrush is a self-contained painting app. No account or login is required and it collects no data — everything runs on-device.
+
+To try it:
+- Pick a color from the palette along the bottom.
+- Drag one finger on the canvas to paint a stroke; tap for a single dab.
+- Two fingers pan and pinch-zoom the canvas.
+- The circular gizmo (top-right) tilts the canvas in 3D; drag it while painting to rotate the view.
+- The spin control flings wet paint outward for spin-art.
+
+iPad only.
