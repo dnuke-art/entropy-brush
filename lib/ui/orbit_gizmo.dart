@@ -4,15 +4,18 @@ import 'package:flutter/material.dart';
 
 import '../paint_controller.dart';
 
-/// A small orbit gizmo (top-right of the canvas): drag it to tilt the canvas in
-/// 3D (pitch + yaw). Double-tap to reset. Mirrors the tilt sliders.
+/// An orbit gizmo (top-right of the canvas): drag it to tilt the canvas in
+/// 3D (pitch + yaw). Double-tap to reset. Mirrors the tilt sliders. Sized as a
+/// comfortable thumb target so you can orbit with one hand while painting with
+/// the other (the finger on the gizmo is captured here, so it never trips the
+/// canvas's two-finger pan/zoom).
 class OrbitGizmo extends StatelessWidget {
   const OrbitGizmo({super.key, required this.controller});
 
   final PaintController controller;
 
   static const double range = 1.309; // max tilt (~75°) at the rim
-  static const double diameter = 78;
+  static const double diameter = 112;
 
   void _set(Offset local) {
     final double c = diameter / 2;
@@ -143,13 +146,14 @@ class _OrbitPainter extends CustomPainter {
       // vertical so it still sits under the finger.
       ctr.dy - (pitch / OrbitGizmo.range).clamp(-1.0, 1.0) * r * 0.78,
     );
-    canvas.drawCircle(knob, 5.5, Paint()..color = Colors.white);
+    final double kr = r * 0.11; // knob scales with the disc
+    canvas.drawCircle(knob, kr, Paint()..color = Colors.white);
     canvas.drawCircle(
         knob,
-        5.5,
+        kr,
         Paint()
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 2
+          ..strokeWidth = kr * 0.36
           ..color = const Color(0xFF3A86FF));
   }
 
