@@ -36,12 +36,11 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      # Install CocoaPods for the simulator so the plugin pods (path_provider,
-      # share_plus) link in for the integration-test build.
-      - name: Install pods (simulator)
-        run: |
-          flutter build ios --config-only --simulator
-          cd ios && pod install
+      # A real simulator build generates the Podfile and runs pod install for
+      # the plugin pods (path_provider, share_plus) — this repo has no committed
+      # Podfile, and --config-only doesn't create one.
+      - name: Build app for the simulator (generates Podfile + pods)
+        run: flutter build ios --simulator --debug
 
       - name: Boot an iPad Pro 12.9"/13" simulator
         id: sim
