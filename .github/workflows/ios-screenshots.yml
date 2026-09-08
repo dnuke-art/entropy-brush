@@ -53,6 +53,7 @@ jobs:
           echo "udid=$UDID" >> "$GITHUB_OUTPUT"
 
       - name: Capture screenshots
+        timeout-minutes: 12
         run: |
           flutter drive \
             --driver=test_driver/integration_test.dart \

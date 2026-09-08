@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 
 import 'paint_controller.dart';
 import 'ui/control_panel.dart';
@@ -42,23 +41,23 @@ class _ShotHost extends StatefulWidget {
   State<_ShotHost> createState() => _ShotHostState();
 }
 
-class _ShotHostState extends State<_ShotHost>
-    with SingleTickerProviderStateMixin {
+class _ShotHostState extends State<_ShotHost> {
   late final PaintController c;
-  late final Ticker _ticker;
 
   @override
   void initState() {
     super.initState();
     c = PaintController(gridSize: PaintController.qualityHigh);
-    _ticker = createTicker((_) => c.frame());
     _boot();
   }
 
   Future<void> _boot() async {
     await c.attachRenderer();
+    if (c.renderer == null) {
+      if (mounted) setState(() {}); // shows the shader-load error, if any
+      return;
+    }
     c.brush.config.infiniteLoad = true;
-    // Freeze the sim so the seeded painting holds still while we render.
     c.flowRate = 0.0;
     c.spinning = false;
     c.gravityDrips = false;
@@ -68,14 +67,18 @@ class _ShotHostState extends State<_ShotHost>
     if (s.tiltY != null) c.tiltY = s.tiltY!;
     if (s.azimuth != null) c.light.azimuth = s.azimuth!;
     if (s.elevation != null) c.light.elevation = s.elevation!;
-    c.viewChanged();
-    _ticker.start(); // keeps re-texturing so the relief image lands on screen
+    // Render the relief ONCE, awaited. No ticker: a continuously-animating
+    // scene deadlocks the integration-test capture surface. renderToImage
+    // re-uploads the grid and renders offscreen, so the seeded paint shows.
+    final img = await c.renderer!.renderToImage(c.grid, c.light);
+    c.reliefImage?.dispose();
+    c.reliefImage = img;
+    c.viewChanged(); // repaint the static canvas with the finished relief
     if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
-    _ticker.dispose();
     c.dispose();
     super.dispose();
   }
