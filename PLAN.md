@@ -92,8 +92,15 @@ spin perf before submitting**.
 - [ ] TestFlight internal testing: create/enable an internal group + automatic
       distribution, add self as tester, install via TestFlight app on the iPad.
 - [ ] On-device: feel the spin perf; tune `spinQuality` (→256?) if needed.
-- [ ] Screenshots (iPad 13", no alpha) + ASC listing via `tools/asc_listing.py`,
-      then App Privacy + Submit.
+- [x] Privacy + support pages LIVE (`entropybrush.art/privacy.html`,
+      `/support.html`) — after reconnecting DO to the `dnuke-art` repo owner.
+- [~] Automated screenshots: `ios-screenshots.yml` drives the real app on an
+      iPad Pro 13" simulator (integration_test + `lib/screenshot_seed.dart`
+      showcase scenes: hero, spin, impasto, mixing) → artifact
+      `appstore-screenshots-ipad-13` at 2064×2752. Iterating on the seed visuals
+      via CI (can't render iOS locally). Mirrors cadsketch's pipeline.
+- [ ] ASC listing via `tools/asc_listing.py` (metadata drafted), then App
+      Privacy + Submit.
 - [ ] Screenshots at the app's own iPad 13" render size (2064×2752), no alpha.
 - [ ] Fill App Store Connect via `tools/asc_listing.py` (metadata/, screenshots/).
 - [ ] Manual clicks: App Privacy questionnaire + Submit for Review.
