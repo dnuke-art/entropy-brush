@@ -64,6 +64,9 @@ spin perf before submitting**.
       Shipped in build 34272470976 (TestFlight, 2026-09-08) — needs on-device feel check.
 - [x] App icon wired in (impasto brushstroke; source at `ios/appstore/icon.svg`).
       Placeholder — may revisit the art.
+- [x] Hid the desktop-only Webcam + SpaceMouse panel sections on iOS/Android
+      (UDP listeners for tools/*.py — dead buttons on iPad). Verified they can't
+      crash there: receive-only UDP binds, no camera permission, failures caught.
 - [ ] iPad UX pass: control panel + canvas sizing for touch, safe-area insets,
       verify the relief FragmentShader renders under Impeller on iOS.
 - [x] Fixed iOS export: was writing to a desktop `~/entropybrush-exports` path

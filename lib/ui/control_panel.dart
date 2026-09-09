@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 
 import '../export/exporter.dart';
@@ -42,6 +44,13 @@ class _ControlPanelState extends State<ControlPanel> {
     c.reloadBrush();
     setState(() => _selectedPigment = i);
   }
+
+  // The webcam / SpaceMouse inputs are desktop robot-integration features
+  // (they listen on UDP for tools/hand_tracker.py and tools/spacemouse.py),
+  // so on iPad/phone they'd just be dead buttons — hide them there.
+  bool get _isMobile =>
+      defaultTargetPlatform == TargetPlatform.iOS ||
+      defaultTargetPlatform == TargetPlatform.android;
 
   Future<void> _export(Future<String> Function() fn, String kind) async {
     try {
@@ -437,57 +446,63 @@ class _ControlPanelState extends State<ControlPanel> {
             ),
           ),
 
-          const SizedBox(height: 16),
-          _heading('Webcam input'),
-          AnimatedBuilder(
-            animation: c,
-            builder: (context, _) => Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                FilledButton.tonal(
-                  onPressed: c.toggleCamera,
-                  style: c.cameraOn
-                      ? FilledButton.styleFrom(
-                          backgroundColor: Colors.teal.shade400)
-                      : null,
-                  child: Text(c.cameraOn ? 'Stop webcam' : 'Start webcam'),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  c.cameraStatus ?? 'pinch thumb+index to paint',
-                  style: const TextStyle(fontSize: 10, color: Colors.white38),
-                ),
-              ],
+          if (!_isMobile) ...[
+            const SizedBox(height: 16),
+            _heading('Webcam input'),
+            AnimatedBuilder(
+              animation: c,
+              builder: (context, _) => Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  FilledButton.tonal(
+                    onPressed: c.toggleCamera,
+                    style: c.cameraOn
+                        ? FilledButton.styleFrom(
+                            backgroundColor: Colors.teal.shade400)
+                        : null,
+                    child: Text(c.cameraOn ? 'Stop webcam' : 'Start webcam'),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    c.cameraStatus ?? 'pinch thumb+index to paint',
+                    style:
+                        const TextStyle(fontSize: 10, color: Colors.white38),
+                  ),
+                ],
+              ),
             ),
-          ),
 
-          const SizedBox(height: 16),
-          _heading('SpaceMouse (6DOF view)'),
-          AnimatedBuilder(
-            animation: c,
-            builder: (context, _) => Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                FilledButton.tonal(
-                  onPressed: c.toggleSpaceMouse,
-                  style: c.spaceMouseOn
-                      ? FilledButton.styleFrom(
-                          backgroundColor: Colors.indigo.shade400)
-                      : null,
-                  child: Text(c.spaceMouseOn ? 'Stop SpaceMouse' : 'Start SpaceMouse'),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  c.spaceMouseStatus ??
-                      'pan/zoom/tilt the view · run tools/spacemouse.py',
-                  style: const TextStyle(fontSize: 10, color: Colors.white38),
-                ),
-              ],
+            const SizedBox(height: 16),
+            _heading('SpaceMouse (6DOF view)'),
+            AnimatedBuilder(
+              animation: c,
+              builder: (context, _) => Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  FilledButton.tonal(
+                    onPressed: c.toggleSpaceMouse,
+                    style: c.spaceMouseOn
+                        ? FilledButton.styleFrom(
+                            backgroundColor: Colors.indigo.shade400)
+                        : null,
+                    child: Text(
+                        c.spaceMouseOn ? 'Stop SpaceMouse' : 'Start SpaceMouse'),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    c.spaceMouseStatus ??
+                        'pan/zoom/tilt the view · run tools/spacemouse.py',
+                    style:
+                        const TextStyle(fontSize: 10, color: Colors.white38),
+                  ),
+                ],
+              ),
             ),
-          ),
-          _slider('Pan speed', c.smPanSpeed, 0.2, 5.0, (v) => c.smPanSpeed = v),
-          _slider('Zoom speed', c.smZoomSpeed, 0.1, 3.0,
-              (v) => c.smZoomSpeed = v),
+            _slider(
+                'Pan speed', c.smPanSpeed, 0.2, 5.0, (v) => c.smPanSpeed = v),
+            _slider('Zoom speed', c.smZoomSpeed, 0.1, 3.0,
+                (v) => c.smZoomSpeed = v),
+          ],
           _slider('Tilt speed', c.smTiltSpeed, 0.2, 4.0,
               (v) => c.smTiltSpeed = v),
 
