@@ -205,6 +205,42 @@ conservation and spin tests unchanged.
   considered for "full width" but the user wants the artwork square; not
   planned. The real concern was a border around the whole app (see App Store §).
 
+## Colour: paint goes brown / muddy (diagnosed 2026-09-09 — fix for 1.1)
+
+User report: paint ends up brown and ugly; suspected lighting or mixing.
+Measured (`test/km_mix_swatches.py`, the app's real pigments through the app's
+exact mixer):
+
+- **Root cause = the mixer, not lighting.** The app uses *single-constant*
+  Kubelka-Munk (averages the K/S *ratio* per RGB channel, `_kmMix` in
+  `paint_grid.dart`). That is only valid when all pigments scatter alike;
+  Titanium White scatters enormously, so averaging ratios can't represent white
+  diluting absorption. Consequences: **tinting is broken** — R+W = (213,51,43),
+  still a saturated red; B+W = (51,77,180) — you cannot make a pink or a sky
+  blue; **complements go near-black** — R+B = (50,38,43); any 3-4 colour mix
+  collapses to brown and white can't lift it (R+B+Y+W = (77,61,46)).
+- **Ruled out by measurement:** gamma-correcting the mixer inputs makes it
+  slightly *worse* (dark channels get darker in linear); raising the K/S floor
+  (0.004→0.02) barely moves it (the dark channels are 0.10-0.12, above any
+  sane floor). Neither is the lever.
+- **Proposed fix: two-constant KM.** Per pigment keep K and S (per channel),
+  mix K and S separately by concentration, then R from K_mix/S_mix. Starting
+  S (scattering / tinting strength): White 4.0, Cadmium Red/Yellow 0.6,
+  Ultramarine 0.35 (K_i = S_i·(K/S)_i from the pigment's reflectance). Result:
+  R+W → (230,105,95) pink; B+W → (126,154,215) sky blue; R+B → (61,36,36)
+  maroon not black; B+Y → clearer olive; 3-4 colour mixes stay brown *as real
+  paint does* but white now lifts them. S becomes an artist-meaningful
+  per-pigment "tinting strength" dial.
+- **Secondary levers (compound the mud):** (1) flow re-mixes colour every
+  substep at the full mass fraction (`frac = ia/nt`, line ~613) so spin/flow
+  homogenises hue toward mud — damp colour transfer to a fraction of mass
+  transfer; (2) lighting/tone: shader has no gamma encode and cavity AO 0.6 on
+  heavy impasto crushes crevices dark while un-tone-mapped key light clips
+  ridges — gamma-encode output, AO 0.6→~0.35, soft tone-map.
+- Alternatives considered: Mixbox (best-in-class, but CC BY-NC — licensing
+  risk for a store app); spectral upsampling + KM per band (physically nicest,
+  more machinery; two-constant RGB-KM captures the tinting fix cheaply).
+
 ## Performance — making the sim faster (PAUSED 2026-07-29)
 
 Investigated but not yet implemented. The complaint is spin-art mode; normal
