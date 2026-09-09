@@ -134,6 +134,21 @@ directly. Build number stays Unix epoch (monotonic; kept under 2^31 — a
 readable datestamp would exceed the existing epoch numbers / risk Apple's cap).
 Bumping the version costs no build time.
 
+## Spin: paint piling into the corners (2026-09-09)
+
+User report: after the spin speed-up, flung paint went to the corners far more.
+Cause: grid anisotropy in the body-force cap. Paint moves on a 4-connected grid
+and the spin force's x and y parts were each capped independently at `gcap`, so
+a *saturated* diagonal flow moved √2× farther per step than an axis-aligned one.
+It only bites at saturation — and fewer, bigger substeps (`spinCf` is `/iters`)
+on a coarser grid saturate constantly. Fix (`flowStep`): cap the body-force
+displacement as a Euclidean vector, so every direction gets the same
+displacement per step. Measured (`test/spin_isotropy_probe.dart`, pure
+centrifugal spin, diagonal-sector mass ÷ axis-sector mass; isotropic ≈ 1.0):
+**before 10.75 → after 0.745**. Residual mild axis bias is inherent to the
+4-connected grid (a diagonal force can only land on an x/y neighbour). Paint
+conservation and spin tests unchanged.
+
 ## Performance — making the sim faster (PAUSED 2026-07-29)
 
 Investigated but not yet implemented. The complaint is spin-art mode; normal

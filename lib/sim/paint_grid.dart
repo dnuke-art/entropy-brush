@@ -491,16 +491,28 @@ class PaintGrid {
               final double nz = valueNoise(x * 0.03 + dripPhase, y * 0.06);
               dgx += (nz - 0.5) * 2.0 * wander;
             }
+            // Cap the body-force displacement as a VECTOR (Euclidean), not per
+            // axis. Capping x and y independently lets a saturated diagonal
+            // flow move √2× farther per step than an axis-aligned one — a grid
+            // anisotropy that piles paint into the corners, and it gets worse
+            // with fewer, bigger substeps. An isotropic cap keeps the fling
+            // radial: every direction gets the same displacement per step.
             final double gcap = mobile * 0.7; // body force alone keeps the film
+            double fx = dgx.abs() * mobile * wi;
+            double fy = dgy.abs() * mobile * wi;
+            final double fmag = math.sqrt(fx * fx + fy * fy);
+            if (fmag > gcap) {
+              final double s = gcap / fmag;
+              fx *= s;
+              fy *= s;
+            }
             if (dgx != 0) {
               gXj = dgx > 0 ? i + 1 : i - 1;
-              gX = dgx.abs() * mobile * wi;
-              if (gX > gcap) gX = gcap;
+              gX = fx;
             }
             if (dgy != 0) {
               gYj = dgy > 0 ? i + width : i - width;
-              gY = dgy.abs() * mobile * wi;
-              if (gY > gcap) gY = gcap;
+              gY = fy;
             }
           }
         }
