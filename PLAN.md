@@ -102,8 +102,18 @@ spin perf before submitting**.
       showcase scenes: hero, spin, impasto, mixing) → artifact
       `appstore-screenshots-ipad-13` at 2064×2752. Iterating on the seed visuals
       via CI (can't render iOS locally). Mirrors cadsketch's pipeline.
-- [ ] ASC listing via `tools/asc_listing.py` (metadata drafted), then App
-      Privacy + Submit.
+- [x] **Store candidate build: `1.0.9` (+`1788923490`)** — run #34306030283,
+      2026-09-09, green. Has everything: gestures, icon, export fix, collapsible
+      sidebar, bounded drying, dirty-rect encode, coarse-spin-on-iPad, isotropic
+      force cap, desktop-only inputs hidden. Use as `--build 1788923490`.
+- [x] ASC uploader dry-run green (auth + app 6809919642 found; will rename the
+      ASC name "Entropy Brush"→`entropybrush` and the auto-created version
+      "1.0"→`1.0.9`; age rating 4+; all territories; review contact set).
+- [ ] Screenshots from the iPad (iPad not on tailnet — share to self / Tailscale
+      on iPad), validate 2064×2752 or 2752×2064 + strip alpha, place in
+      `ios/appstore/screenshots/ipad-13/`.
+- [ ] Real upload: `asc_listing.py … --version 1.0.9 --build 1788923490` (after
+      ASC lists the build as VALID), then App Privacy + Submit in the web UI.
 - [ ] Screenshots at the app's own iPad 13" render size (2064×2752), no alpha.
 - [ ] Fill App Store Connect via `tools/asc_listing.py` (metadata/, screenshots/).
 - [ ] Manual clicks: App Privacy questionnaire + Submit for Review.
