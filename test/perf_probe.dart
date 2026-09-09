@@ -23,6 +23,12 @@ void main() {
   for (final n in const [512, 768]) {
     // A small brush dab → tiny wet bbox (what "normal painting" a stroke is).
     final g = PaintGrid(n, n);
+    // Steady state: buffers filled by a first full render, dirt cleared (the
+    // renderer calls resetDirty each frame), then one brush dab dirties a tiny
+    // rect — the real per-frame interactive cost with dirty-rect encoding.
+    g.encodeHeightRGBA();
+    g.encodeAlbedoRGBA();
+    g.resetDirty();
     g.pile(n * 0.5, n * 0.5, 12, 40, 0.2, 0.4, 0.8);
     final double encH = bestMs(20, () => g.encodeHeightRGBA());
     final double encA = bestMs(20, () => g.encodeAlbedoRGBA());

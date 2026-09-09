@@ -154,7 +154,11 @@ ceiling; only the GPU changes the game:
       core off Flutter. Reference architecture: the toolcraft.sh liquid-metal
       demo (React + Vite + three.js/WebGL2 + custom GLSL).
 
-Secondary: the encoders (`encodeHeightRGBA`/`encodeAlbedoRGBA`) iterate the full
-grid every frame and ignore the dirty rect — could be dirty-rect-bounded for
-normal painting (~7 → ~1 ms), but the Flutter texture *upload* stays full-image,
-so the win is CPU-encode only. Low priority vs the spin path.
+- [x] **Dirty-rect encode (done).** `encodeHeightRGBA`/`encodeAlbedoRGBA` now
+      re-pack only the grid's dirty rect into the reused buffer (full-pack only
+      when fresh or whole-grid-invalidated). Measured: a brush-dab encode dropped
+      ~3.2 ms (512²) / 7.3 ms → **~0.01 ms** — the per-frame painting CPU cost is
+      now ~free. Spin still full-encodes (whole grid dirty), but that's covered
+      by the auto-quality drop. The texture *upload* + `toImage` stay full-image
+      (the remaining per-rebuild GPU cost; would need drawing the shader straight
+      onto the slab to remove `picture.toImage()`, a bigger rework).

@@ -703,38 +703,73 @@ class PaintGrid {
   // --- texture encoding for the relief shader ---
 
   /// RGBA8 buffer with thickness packed 16-bit into R (high) + G (low).
+  // Encode window: the reused packed buffer stays fully valid frame-to-frame, so
+  // only the dirty rect needs re-packing (a brush dab touches a tiny fraction of
+  // the grid). Full-pack when the buffer was just allocated or the whole grid
+  // was invalidated (clear/resample/canvas rebuild). Returns null when nothing
+  // changed and the buffer is already current.
+  ({int x0, int y0, int x1, int y1})? _encodeWindow(bool fresh) {
+    if (!fresh && !_dirty) return null; // buffer already current
+    final bool full = fresh ||
+        (_dirtyMinX <= 0 &&
+            _dirtyMinY <= 0 &&
+            _dirtyMaxX >= width &&
+            _dirtyMaxY >= height);
+    if (full) return (x0: 0, y0: 0, x1: width, y1: height);
+    return (
+      x0: _dirtyMinX.clamp(0, width),
+      y0: _dirtyMinY.clamp(0, height),
+      x1: _dirtyMaxX.clamp(0, width),
+      y1: _dirtyMaxY.clamp(0, height),
+    );
+  }
+
   Uint8List encodeHeightRGBA() {
+    final bool fresh = _heightBuf == null;
     final out = _heightBuf ??= Uint8List(width * height * 4);
+    final w = _encodeWindow(fresh);
+    if (w == null) return out;
     final double inv = 1.0 / maxHeight;
-    for (int i = 0, p = 0; i < thickness.length; i++, p += 4) {
-      double h = (canvasHeight[i] + thickness[i]) * inv;
-      // `!(h > 0)` is deliberately written so it also catches NaN (every
-      // comparison with NaN is false), which a plain `h < 0` clamp would let
-      // slip through to `.round()` and crash the renderer every frame.
-      if (!(h > 0)) {
-        h = 0;
-      } else if (h > 1) {
-        h = 1;
+    for (int y = w.y0; y < w.y1; y++) {
+      int i = y * width + w.x0;
+      int p = i * 4;
+      for (int x = w.x0; x < w.x1; x++, i++, p += 4) {
+        double h = (canvasHeight[i] + thickness[i]) * inv;
+        // `!(h > 0)` is deliberately written so it also catches NaN (every
+        // comparison with NaN is false), which a plain `h < 0` clamp would let
+        // slip through to `.round()` and crash the renderer every frame.
+        if (!(h > 0)) {
+          h = 0;
+        } else if (h > 1) {
+          h = 1;
+        }
+        final int q = (h * 65535.0).round();
+        out[p] = (q >> 8) & 0xFF;
+        out[p + 1] = q & 0xFF;
+        out[p + 2] = 0;
+        out[p + 3] = 255;
       }
-      final int q = (h * 65535.0).round();
-      out[p] = (q >> 8) & 0xFF;
-      out[p + 1] = q & 0xFF;
-      out[p + 2] = 0;
-      out[p + 3] = 255;
     }
     return out;
   }
 
   /// RGBA8 buffer of the surface pigment colour.
   Uint8List encodeAlbedoRGBA() {
+    final bool fresh = _albedoBuf == null;
     final out = _albedoBuf ??= Uint8List(width * height * 4);
-    for (int i = 0, p = 0; i < thickness.length; i++, p += 4) {
-      // _u8 clamps and rejects non-finite values, so a stray NaN can't crash
-      // `.round()` here either.
-      out[p] = _u8(r[i]);
-      out[p + 1] = _u8(g[i]);
-      out[p + 2] = _u8(b[i]);
-      out[p + 3] = 255;
+    final w = _encodeWindow(fresh);
+    if (w == null) return out;
+    for (int y = w.y0; y < w.y1; y++) {
+      int i = y * width + w.x0;
+      int p = i * 4;
+      for (int x = w.x0; x < w.x1; x++, i++, p += 4) {
+        // _u8 clamps and rejects non-finite values, so a stray NaN can't crash
+        // `.round()` here either.
+        out[p] = _u8(r[i]);
+        out[p + 1] = _u8(g[i]);
+        out[p + 2] = _u8(b[i]);
+        out[p + 3] = 255;
+      }
     }
     return out;
   }
