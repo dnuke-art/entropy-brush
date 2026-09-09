@@ -26,6 +26,11 @@ const _pigments = <_Pigment>[
   _Pigment('Cadmium Red', 0.78, 0.12, 0.10, 0.6), // opaque
   _Pigment('Cadmium Yellow', 0.92, 0.78, 0.12, 0.6), // opaque
   _Pigment('Titanium White', 0.95, 0.94, 0.90, 4.0), // strong scatterer
+  // Glazing medium: no absorption, almost no scattering. On its own it lays
+  // transparent relief (gloss/varnish strokes); mixed into a pigment on the
+  // palette it dilutes K and S together, so the pigment becomes a pale,
+  // transparent glaze/wash over the ground instead of an opaque body colour.
+  _Pigment('Medium (glaze)', 1.0, 1.0, 1.0, 0.05),
 ];
 
 class ControlPanel extends StatefulWidget {
@@ -671,6 +676,10 @@ class _Swatch extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
 
+  /// A glazing medium (near-zero scattering) is transparent, so draw it as a
+  /// glassy sheen over the panel instead of a solid chip.
+  bool get _isMedium => pigment.s < 0.1;
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -678,14 +687,26 @@ class _Swatch extends StatelessWidget {
       child: Container(
         width: 56,
         height: _swatchHeight,
+        alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: pigment.color,
+          color: _isMedium ? null : pigment.color,
+          gradient: _isMedium
+              ? const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0x66FFFFFF), Color(0x14FFFFFF), Color(0x4DFFFFFF)],
+                )
+              : null,
           borderRadius: BorderRadius.circular(6),
           border: Border.all(
             color: selected ? Colors.white : Colors.white24,
             width: selected ? 2.5 : 1,
           ),
         ),
+        child: _isMedium
+            ? const Text('glaze',
+                style: TextStyle(fontSize: 10, color: Colors.white70))
+            : null,
       ),
     );
   }

@@ -132,6 +132,17 @@ class PaintGrid {
   /// cadmium-like opacity).
   static const double defaultPigmentS = 0.6;
 
+  /// How strongly paint with scattering [s] tints what it lands on (0..1).
+  /// In KM an opaque layer's colour depends only on K/S, so diluting pigment
+  /// with clear medium doesn't change its colour — a glaze only looks pale
+  /// because the layer is thin and the ground shows through. We fold that in
+  /// here: the *composition* (S) of a cell always mixes by coverage, but the
+  /// *colour* mixes by coverage × hidingPower. Pure medium (S 0.05) → 0: lays
+  /// transparent relief, never whitens (at cover 1 the two-constant mix would
+  /// otherwise go to K=0 → white). A 1:3 pigment:medium mix (S≈0.19) → ~0.3,
+  /// so it stays a wash over the ground; ordinary pigments (S ≥ 0.5) → 1.
+  static double hidingPower(double s) => ((s - 0.05) / 0.45).clamp(0.0, 1.0);
+
   /// Scattering of the bare canvas ground. Kept equal to the pigment default
   /// on purpose: `cover` is a tinting heuristic, not a volumetric
   /// concentration, so a strongly scattering ground (tried S=2, "gesso") made
@@ -264,11 +275,14 @@ class PaintGrid {
         // green, and white actually tints — instead of collapsing to mud.
         final double cover = (add * 6.0 * profile.opacity).clamp(0.0, 1.0);
         final double si = s[i];
-        final double sm = si * (1.0 - cover) + ps * cover;
-        r[i] = _kmMix2(r[i], si, pr, ps, cover, sm);
-        g[i] = _kmMix2(g[i], si, pg, ps, cover, sm);
-        b[i] = _kmMix2(b[i], si, pb, ps, cover, sm);
-        s[i] = sm;
+        // Composition mixes by coverage; colour by coverage × hiding power
+        // (see [hidingPower]) so clear medium dilutes without whitening.
+        final double tint = cover * hidingPower(ps);
+        final double st = si * (1.0 - tint) + ps * tint;
+        r[i] = _kmMix2(r[i], si, pr, ps, tint, st);
+        g[i] = _kmMix2(g[i], si, pg, ps, tint, st);
+        b[i] = _kmMix2(b[i], si, pb, ps, tint, st);
+        s[i] = si * (1.0 - cover) + ps * cover;
         _touch(x, y);
       }
     }
@@ -395,11 +409,12 @@ class PaintGrid {
         _wetTouch(x, y);
         final double cover = (add * 6.0).clamp(0.0, 1.0);
         final double si = s[i];
-        final double sm = si * (1.0 - cover) + ps * cover;
-        r[i] = _kmMix2(r[i], si, pr, ps, cover, sm);
-        g[i] = _kmMix2(g[i], si, pg, ps, cover, sm);
-        b[i] = _kmMix2(b[i], si, pb, ps, cover, sm);
-        s[i] = sm;
+        final double tint = cover * hidingPower(ps);
+        final double st = si * (1.0 - tint) + ps * tint;
+        r[i] = _kmMix2(r[i], si, pr, ps, tint, st);
+        g[i] = _kmMix2(g[i], si, pg, ps, tint, st);
+        b[i] = _kmMix2(b[i], si, pb, ps, tint, st);
+        s[i] = si * (1.0 - cover) + ps * cover;
         _touch(x, y);
       }
     }
@@ -684,14 +699,15 @@ class PaintGrid {
           // Mass-weighted: colour AND wetness follow the moving paint, so the
           // pigment travels with the drip (no detached outline).
           final double nt = thickness[i];
+          final double sIn = inS[i] / ia; // scattering of the arriving paint
           final double frac = (ia / (nt + 1e-6)).clamp(0.0, 1.0);
           final double si = s[i];
-          final double sIn = inS[i] / ia; // scattering of the arriving paint
-          final double sm = si * (1.0 - frac) + sIn * frac;
-          r[i] = _kmMix2(r[i], si, inR[i] / ia, sIn, frac, sm);
-          g[i] = _kmMix2(g[i], si, inG[i] / ia, sIn, frac, sm);
-          b[i] = _kmMix2(b[i], si, inB[i] / ia, sIn, frac, sm);
-          s[i] = sm;
+          final double tint = frac * hidingPower(sIn);
+          final double st = si * (1.0 - tint) + sIn * tint;
+          r[i] = _kmMix2(r[i], si, inR[i] / ia, sIn, tint, st);
+          g[i] = _kmMix2(g[i], si, inG[i] / ia, sIn, tint, st);
+          b[i] = _kmMix2(b[i], si, inB[i] / ia, sIn, tint, st);
+          s[i] = si * (1.0 - frac) + sIn * frac;
           wet[i] += (inW[i] / ia - wet[i]) * frac;
         }
         if (d != 0 || ia > 0) _touch(x, y);

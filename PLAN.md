@@ -15,7 +15,10 @@ current model; this file is the "next up" backlog.
       are less mobile (`levelH0` 0.02). Strokes slump to soft striations and hold
       them; pours/drips unchanged. Visual A/B: `test/drip_shape_probe.dart`
       (env `LEVEL_YIELD`/`LEVEL_H0`, 0/0 = old behaviour).
-- [ ] Glazing "medium" swatch (zero K, low S) — cheap now that S exists.
+- [x] Glazing "medium" swatch (K≈0, S 0.05). Colour mixes by cover × `hidingPower(S)`,
+      composition by cover, so pure medium lays clear relief and never whitens;
+      pigment cut with medium on the palette becomes a pale transparent wash.
+      `test/glaze_medium_test.dart`.
 - [ ] Wet-into-wet mud: damp colour transfer vs mass transfer at stroke contacts.
 - [ ] Lighting/tone (gamma, AO 0.6→~0.35, tone-map) — needs on-device eyeball.
 - [ ] Gradient brush load from the palette (multi-hue stroke).
