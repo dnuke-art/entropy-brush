@@ -131,9 +131,15 @@ spin perf before submitting**.
       uploaded (APP_IPAD_PRO_3GEN_129, all COMPLETE)**, build `1788923490`
       VALID and **attached**. Chose to ship 1.0.9 (option A); the seamless-frame
       color fix + Development-p12 CI fix ride in the first update.
-- [ ] **Dan's two web-UI clicks:** App Privacy questionnaire ("No, we do not
-      collect data" → Publish), then Add for Review → Submit to App Review.
-      Release type is MANUAL, so after approval it waits for a release click.
+- [x] **SUBMITTED 2026-09-09.** App Privacy answered ("No, we do not collect
+      data"), Add for Review → Submit. Verified via API: version `1.0.9` state
+      `WAITING_FOR_REVIEW`, release type MANUAL → after approval, press
+      **Release** in ASC (it won't auto-publish).
+- [ ] While in review: do NOT run `asc_listing.py` (a submitted version isn't
+      editable; the tool would create the next version / 409). TestFlight builds
+      via `workflow_dispatch` are safe (ios.yml has no staging step).
+- [ ] After approval → Release. Then 1.1: seamless-frame color fix (already on
+      main), Development-p12 CI fix (Dan's one-time secrets), canvas stays square.
 - [ ] Screenshots at the app's own iPad 13" render size (2064×2752), no alpha.
 - [ ] Fill App Store Connect via `tools/asc_listing.py` (metadata/, screenshots/).
 - [ ] Manual clicks: App Privacy questionnaire + Submit for Review.
