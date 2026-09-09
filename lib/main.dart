@@ -71,7 +71,7 @@ class _HomePageState extends State<HomePage>
   Future<void> _init() async {
     await controller.attachRenderer();
     // Start with pigment A loaded so the first stroke paints.
-    controller.setPigment(0.12, 0.20, 0.62);
+    controller.setPigment(0.12, 0.20, 0.62, s: 0.35); // Ultramarine
     // Default to infinite paint on — never run dry unless the user turns it off.
     controller.brush.config.infiniteLoad = true;
     controller.reloadBrush();

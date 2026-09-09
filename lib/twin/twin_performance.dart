@@ -15,6 +15,7 @@ class TwinOp {
     this.r = 0,
     this.g = 0,
     this.b = 0,
+    this.s = 0.6,
   });
 
   /// Seconds from the start of the recording.
@@ -28,6 +29,11 @@ class TwinOp {
   /// Pigment colour for a [TwinOpKind.reload].
   final double r, g, b;
 
+  /// Pigment scattering strength (two-constant Kubelka-Munk "S": opacity /
+  /// tinting strength) for a [TwinOpKind.reload]. Optional in the format —
+  /// v1/v2 recordings without it replay with a neutral 0.6.
+  final double s;
+
   Map<String, dynamic> toJson() => {
         't': t,
         'k': kind.index,
@@ -40,6 +46,7 @@ class TwinOp {
           'r': r,
           'g': g,
           'b': b,
+          's': s,
         },
       };
 
@@ -52,6 +59,7 @@ class TwinOp {
         r: (j['r'] as num?)?.toDouble() ?? 0,
         g: (j['g'] as num?)?.toDouble() ?? 0,
         b: (j['b'] as num?)?.toDouble() ?? 0,
+        s: (j['s'] as num?)?.toDouble() ?? 0.6,
       );
 }
 

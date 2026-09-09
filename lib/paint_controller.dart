@@ -168,6 +168,7 @@ class PaintController extends ChangeNotifier {
 
   // Current pigment, shared by the swatch picker and palette mixing.
   double _curR = 0.12, _curG = 0.20, _curB = 0.62;
+  double _curS = 0.35; // scattering (two-constant KM); Ultramarine default
 
   // Fixed simulation step keeps the bristle springs stable regardless of how
   // fast pointer events arrive. Fast strokes simply take more substeps.
@@ -240,16 +241,22 @@ class PaintController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setPigment(double r, double g, double b) {
+  /// [s] is the pigment's scattering strength (two-constant Kubelka-Munk):
+  /// opacity / tinting strength. White is a strong scatterer (~4), cadmiums
+  /// ~0.6, ultramarine ~0.35.
+  void setPigment(double r, double g, double b,
+      {double s = PaintGrid.defaultPigmentS}) {
     _curR = r;
     _curG = g;
     _curB = b;
-    brush.setPigment(r, g, b);
+    _curS = s;
+    brush.setPigment(r, g, b, s);
   }
 
   void reloadBrush() {
     final c = brush.loadColor;
-    _rec(TwinOp(_now, TwinOpKind.reload, r: c[0], g: c[1], b: c[2]));
+    _rec(TwinOp(_now, TwinOpKind.reload,
+        r: c[0], g: c[1], b: c[2], s: brush.loadS));
     brush.reload();
   }
 
@@ -375,8 +382,8 @@ class PaintController extends ChangeNotifier {
     _pourAccum += _pourVolPerFrame;
     final double radius =
         math.min(_pourMaxRadius, 4.0 + math.sqrt(_pourAccum) * 1.2);
-    grid.deposit(
-        _pourX, _pourY, radius, _pourVolPerFrame, _curR, _curG, _curB);
+    grid.deposit(_pourX, _pourY, radius, _pourVolPerFrame, _curR, _curG, _curB,
+        ps: _curS);
   }
 
   void clearCanvas() {
@@ -422,8 +429,9 @@ class PaintController extends ChangeNotifier {
     // flattening into a puddle.
     final double radius =
         math.min(_squirtMaxRadius, 6.0 + math.sqrt(_squirtAccum) * 1.8);
-    palette.deposit(
-        _palLastX, _palLastY, radius, _squirtVolPerFrame, _curR, _curG, _curB);
+    palette.deposit(_palLastX, _palLastY, radius, _squirtVolPerFrame, _curR,
+        _curG, _curB,
+        ps: _curS);
   }
 
   /// Dip the brush into the palette at the last touched spot: the brush takes
@@ -432,12 +440,14 @@ class PaintController extends ChangeNotifier {
     final px = _palHasPos ? _palLastX : palette.width / 2;
     final py = _palHasPos ? _palLastY : palette.height / 2;
     final rgb = <double>[_curR, _curG, _curB];
-    final amount = palette.sampleColor(px, py, 12.0, rgb);
+    final sOut = <double>[_curS];
+    final amount = palette.sampleColor(px, py, 12.0, rgb, outS: sOut);
     if (amount > 0) {
-      setPigment(rgb[0], rgb[1], rgb[2]);
+      setPigment(rgb[0], rgb[1], rgb[2], s: sOut[0]);
     }
     final c = brush.loadColor;
-    _rec(TwinOp(_now, TwinOpKind.reload, r: c[0], g: c[1], b: c[2]));
+    _rec(TwinOp(_now, TwinOpKind.reload,
+        r: c[0], g: c[1], b: c[2], s: brush.loadS));
     brush.reload();
     notifyListeners();
   }
@@ -512,7 +522,7 @@ class PaintController extends ChangeNotifier {
           _doEnd();
           break;
         case TwinOpKind.reload:
-          brush.setPigment(op.r, op.g, op.b);
+          brush.setPigment(op.r, op.g, op.b, op.s);
           brush.reload();
           break;
       }

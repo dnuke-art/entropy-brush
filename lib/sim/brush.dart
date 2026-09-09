@@ -20,6 +20,9 @@ class Bristle {
   double load = 0;
   double r = 0, g = 0, b = 0;
 
+  /// Scattering strength of the paint on this bristle (two-constant KM "S").
+  double s = PaintGrid.defaultPigmentS;
+
   /// Per-bristle character: [gain] scales how much this hair lays down (and how
   /// fast it drains, so some hairs dry before others); [rscale] varies its track
   /// width. Together they break the stroke into individual bristle striations.
@@ -133,17 +136,23 @@ class Brush {
   /// strokes lay more paint per length, so paint pools where you slow down.
   double dwell = 0;
 
-  // Loaded pigment for the next reload.
+  // Loaded pigment for the next reload (colour + scattering strength).
   double _loadR = 0.1, _loadG = 0.2, _loadB = 0.7;
+  double _loadS = 0.35;
 
-  void setPigment(double r, double g, double b) {
+  void setPigment(double r, double g, double b,
+      [double s = PaintGrid.defaultPigmentS]) {
     _loadR = r;
     _loadG = g;
     _loadB = b;
+    _loadS = s;
   }
 
   /// The pigment that would be applied on the next reload (for recording).
   List<double> get loadColor => [_loadR, _loadG, _loadB];
+
+  /// Scattering strength of the loaded pigment (for recording).
+  double get loadS => _loadS;
 
   /// Lay out the bristle fan: jittered radial positions so the brush has an
   /// irregular edge rather than a clean disc.
@@ -170,6 +179,7 @@ class Brush {
       br.r = _loadR;
       br.g = _loadG;
       br.b = _loadB;
+      br.s = _loadS;
     }
   }
 
@@ -205,16 +215,17 @@ class Brush {
     if (bristles.isEmpty || dwell <= 0.02) return;
     final double frac = (0.15 * config.dwellBuildup * dwell).clamp(0.0, 0.6);
     final int n = bristles.length;
-    double amount = 0, pr = 0, pg = 0, pb = 0;
+    double amount = 0, pr = 0, pg = 0, pb = 0, ps = 0;
     for (final br in bristles) {
       amount += br.load * frac;
       pr += br.r;
       pg += br.g;
       pb += br.b;
+      ps += br.s;
     }
     if (amount <= 0) return;
     grid.deposit(x, y, config.headRadius * 0.55, amount, pr / n, pg / n, pb / n,
-        coverage: 1.0);
+        coverage: 1.0, ps: ps / n);
     for (final br in bristles) {
       br.load -= br.load * frac;
     }
@@ -241,6 +252,7 @@ class Brush {
     final double contactBase = 0.8 + press * 0.9;
 
     final List<double> picked = [0, 0, 0];
+    final List<double> pickedS = [0]; // scattering of the picked-up paint
 
     for (final br in bristles) {
       if (!br.initialised) {
@@ -256,6 +268,7 @@ class Brush {
         br.r = _loadR;
         br.g = _loadG;
         br.b = _loadB;
+        br.s = _loadS;
       }
 
       // Anchor = head centre + splayed rest offset.
@@ -298,7 +311,7 @@ class Brush {
         if (mvlen < 1e-4 || config.bristleLength <= 0) {
           // Stationary dab.
           grid.deposit(br.tipX, br.tipY, rb, laid, br.r, br.g, br.b,
-              coverage: coverage);
+              coverage: coverage, ps: br.s);
         } else {
           // The brush flattens with pressure: contact runs from a leading belly
           // (ahead of the lagging tip, where most paint is laid and the patch is
@@ -309,10 +322,10 @@ class Brush {
           final double leadY = br.tipY + dirY * contactLen;
           grid.deposit(leadX, leadY, rb * (1.0 + 0.6 * press), laid * 0.65,
               br.r, br.g, br.b,
-              coverage: coverage);
+              coverage: coverage, ps: br.s);
           grid.deposit(br.tipX, br.tipY, rb * 0.8, laid * 0.35, br.r, br.g,
               br.b,
-              coverage: coverage * 0.85);
+              coverage: coverage * 0.85, ps: br.s);
         }
         br.load -= consumed;
 
@@ -322,10 +335,12 @@ class Brush {
           final double frac = (config.displacement * press * 0.4)
               .clamp(0.0, 0.5);
           final double moved = grid.scrape(
-              br.tipX + dirX * 1.2, br.tipY + dirY * 1.2, rb, frac, picked);
+              br.tipX + dirX * 1.2, br.tipY + dirY * 1.2, rb, frac, picked,
+              outS: pickedS);
           if (moved > 0) {
             grid.pile(br.tipX - dirX * 1.0, br.tipY - dirY * 1.0, rb * 1.1,
-                moved, picked[0], picked[1], picked[2]);
+                moved, picked[0], picked[1], picked[2],
+                ps: pickedS[0]);
           }
         }
       }
@@ -336,8 +351,9 @@ class Brush {
       // dragging over thin/bare canvas barely shifts the hair (no muddy fade).
       // Skipped entirely under infinite paint, which holds a fixed colour.
       if (!config.infiniteLoad) {
-        final double under =
-            grid.sampleColor(br.tipX, br.tipY, contactBase * br.rscale, picked);
+        final double under = grid.sampleColor(
+            br.tipX, br.tipY, contactBase * br.rscale, picked,
+            outS: pickedS);
         if (under > 0.01) {
           final double wetFactor = (under / (under + 0.4)).clamp(0.0, 1.0);
           final double mix =
@@ -346,6 +362,7 @@ class Brush {
           br.r += (picked[0] - br.r) * mix;
           br.g += (picked[1] - br.g) * mix;
           br.b += (picked[2] - br.b) * mix;
+          br.s += (pickedS[0] - br.s) * mix;
         }
       }
     }

@@ -7,9 +7,13 @@ import '../paint_controller.dart';
 import 'palette_canvas.dart';
 
 class _Pigment {
-  const _Pigment(this.name, this.r, this.g, this.b);
+  const _Pigment(this.name, this.r, this.g, this.b, this.s);
   final String name;
   final double r, g, b;
+
+  /// Scattering strength (two-constant KM "S"): opacity / tinting strength.
+  /// Titanium White is a very strong scatterer — that's what lets it tint.
+  final double s;
   Color get color => Color.fromARGB(
       255, (r * 255).round(), (g * 255).round(), (b * 255).round());
 }
@@ -18,10 +22,10 @@ class _Pigment {
 const double _swatchHeight = 40;
 
 const _pigments = <_Pigment>[
-  _Pigment('Ultramarine', 0.12, 0.20, 0.62),
-  _Pigment('Cadmium Red', 0.78, 0.12, 0.10),
-  _Pigment('Cadmium Yellow', 0.92, 0.78, 0.12),
-  _Pigment('Titanium White', 0.95, 0.94, 0.90),
+  _Pigment('Ultramarine', 0.12, 0.20, 0.62, 0.35), // semi-transparent
+  _Pigment('Cadmium Red', 0.78, 0.12, 0.10, 0.6), // opaque
+  _Pigment('Cadmium Yellow', 0.92, 0.78, 0.12, 0.6), // opaque
+  _Pigment('Titanium White', 0.95, 0.94, 0.90, 4.0), // strong scatterer
 ];
 
 class ControlPanel extends StatefulWidget {
@@ -40,7 +44,7 @@ class _ControlPanelState extends State<ControlPanel> {
 
   void _selectPigment(int i) {
     final p = _pigments[i];
-    c.setPigment(p.r, p.g, p.b);
+    c.setPigment(p.r, p.g, p.b, s: p.s);
     c.reloadBrush();
     setState(() => _selectedPigment = i);
   }

@@ -17,7 +17,8 @@ class PaintGrid {
         wet = Float32List(width * height),
         r = Float32List(width * height),
         g = Float32List(width * height),
-        b = Float32List(width * height) {
+        b = Float32List(width * height),
+        s = Float32List(width * height) {
     clear();
     generateCanvasTexture();
     dripPhase = math.Random().nextDouble() * 997.0;
@@ -62,7 +63,7 @@ class PaintGrid {
       : 0;
 
   // Scratch buffers for the flow step (allocated lazily, reused each frame).
-  Float32List? _dH, _inA, _inR, _inG, _inB, _inW;
+  Float32List? _dH, _inA, _inR, _inG, _inB, _inW, _inS;
 
   // Reused RGBA encode buffers so the per-frame texture upload doesn't allocate
   // ~2.4 MB twice every frame (which pins the GC, worst on web/VR).
@@ -110,6 +111,15 @@ class PaintGrid {
   /// Top-surface pigment colour, linear 0..1.
   final Float32List r, g, b;
 
+  /// Scattering strength of the paint mixture in each cell — the "S" of
+  /// two-constant Kubelka-Munk (opacity / tinting strength). Titanium white is
+  /// a strong scatterer (~4), cadmiums ~0.6, ultramarine ~0.35. Kept per cell
+  /// (achromatic) so white can actually tint: mixing K and S separately, then
+  /// taking K/S, lets a strong scatterer dilute absorption. Averaging the K/S
+  /// *ratio* alone (single-constant KM) can't — white barely lightens and
+  /// complements collapse to black/brown.
+  final Float32List s;
+
   /// Active paint medium — controls how thick and lumpy deposits are.
   PaintProfile profile = PaintProfile();
 
@@ -117,6 +127,14 @@ class PaintGrid {
   static const double canvasR = 0.92;
   static const double canvasG = 0.89;
   static const double canvasB = 0.82;
+
+  /// Default pigment scattering when a caller doesn't specify one (a mid,
+  /// cadmium-like opacity).
+  static const double defaultPigmentS = 0.6;
+
+  /// Scattering of the bare canvas ground (a white, scattering gesso): thin
+  /// paint over it reads pale, like a glaze; opaque strokes are unaffected.
+  static const double canvasS = 2.0;
 
   // Dirty rectangle so the renderer only re-encodes what changed.
   int _dirtyMinX = 0, _dirtyMinY = 0, _dirtyMaxX = 0, _dirtyMaxY = 0;
@@ -131,6 +149,7 @@ class PaintGrid {
       r[i] = canvasR;
       g[i] = canvasG;
       b[i] = canvasB;
+      s[i] = canvasS;
     }
     _hasWet = false;
     _dirtyAll();
@@ -175,7 +194,8 @@ class PaintGrid {
   /// tooth peaks catch paint, producing drybrush / scumble that reveals the
   /// canvas weave.
   void deposit(double cx, double cy, double radius, double volume, double pr,
-      double pg, double pb, {double coverage = 1.0}) {
+      double pg, double pb,
+      {double coverage = 1.0, double ps = defaultPigmentS}) {
     if (volume <= 0) return;
     final bool gateTooth = coverage < 0.999 && canvasToothAmplitude > 1e-6;
     final double toothThresh = 1.0 - coverage;
@@ -234,12 +254,16 @@ class PaintGrid {
         _wetTouch(x, y);
 
         // Coverage drives how strongly the new pigment tints the surface.
-        // Mixing is subtractive (Kubelka-Munk per channel) so pigments blend
-        // like paint — blue + yellow makes green, not muddy grey.
+        // Mixing is subtractive, two-constant Kubelka-Munk per channel (K and S
+        // mixed separately) so pigments blend like paint — blue + yellow makes
+        // green, and white actually tints — instead of collapsing to mud.
         final double cover = (add * 6.0 * profile.opacity).clamp(0.0, 1.0);
-        r[i] = _kmMix(r[i], pr, cover);
-        g[i] = _kmMix(g[i], pg, cover);
-        b[i] = _kmMix(b[i], pb, cover);
+        final double si = s[i];
+        final double sm = si * (1.0 - cover) + ps * cover;
+        r[i] = _kmMix2(r[i], si, pr, ps, cover, sm);
+        g[i] = _kmMix2(g[i], si, pg, ps, cover, sm);
+        b[i] = _kmMix2(b[i], si, pb, ps, cover, sm);
+        s[i] = sm;
         _touch(x, y);
       }
     }
@@ -250,14 +274,15 @@ class PaintGrid {
   /// is returned. Used for wet-on-wet colour pickup — it does NOT remove paint,
   /// so strokes blend without destroying material and the brush load only ever
   /// drains.
-  double sampleColor(double cx, double cy, double radius, List<double> outRgb) {
+  double sampleColor(double cx, double cy, double radius, List<double> outRgb,
+      {List<double>? outS}) {
     final int x0 = math.max(0, (cx - radius).floor());
     final int x1 = math.min(width - 1, (cx + radius).ceil());
     final int y0 = math.max(0, (cy - radius).floor());
     final int y1 = math.min(height - 1, (cy + radius).ceil());
     if (x0 > x1 || y0 > y1) return 0;
 
-    double wr = 0, wg = 0, wb = 0, wsum = 0, total = 0;
+    double wr = 0, wg = 0, wb = 0, ws = 0, wsum = 0, total = 0;
     final double invR2 = 1.0 / (radius * radius);
     for (int y = y0; y <= y1; y++) {
       final double dy = y - cy;
@@ -272,6 +297,7 @@ class PaintGrid {
         wr += r[i] * w;
         wg += g[i] * w;
         wb += b[i] * w;
+        ws += s[i] * w;
         wsum += w;
         total += th;
       }
@@ -280,6 +306,7 @@ class PaintGrid {
       outRgb[0] = wr / wsum;
       outRgb[1] = wg / wsum;
       outRgb[2] = wb / wsum;
+      outS?[0] = ws / wsum;
     }
     return total;
   }
@@ -288,14 +315,15 @@ class PaintGrid {
   /// the total amount removed, with its thickness-weighted colour in [outRgb].
   /// Pair with [pile] to push paint around (a bristle plowing wet paint).
   double scrape(double cx, double cy, double radius, double fraction,
-      List<double> outRgb) {
+      List<double> outRgb,
+      {List<double>? outS}) {
     final int x0 = math.max(0, (cx - radius).floor());
     final int x1 = math.min(width - 1, (cx + radius).ceil());
     final int y0 = math.max(0, (cy - radius).floor());
     final int y1 = math.min(height - 1, (cy + radius).ceil());
     if (x0 > x1 || y0 > y1) return 0;
 
-    double wr = 0, wg = 0, wb = 0, removed = 0;
+    double wr = 0, wg = 0, wb = 0, ws = 0, removed = 0;
     final double invR2 = 1.0 / (radius * radius);
     for (int y = y0; y <= y1; y++) {
       final double dy = y - cy;
@@ -311,6 +339,7 @@ class PaintGrid {
         wr += r[i] * take;
         wg += g[i] * take;
         wb += b[i] * take;
+        ws += s[i] * take;
         removed += take;
         _touch(x, y);
       }
@@ -319,6 +348,7 @@ class PaintGrid {
       outRgb[0] = wr / removed;
       outRgb[1] = wg / removed;
       outRgb[2] = wb / removed;
+      outS?[0] = ws / removed;
     }
     return removed;
   }
@@ -327,7 +357,8 @@ class PaintGrid {
   /// like [deposit] but with no body/lumpiness/tooth modulation, so paint moved
   /// by [scrape] is preserved exactly. Used for paint displacement / ridging.
   void pile(double cx, double cy, double radius, double amount, double pr,
-      double pg, double pb) {
+      double pg, double pb,
+      {double ps = defaultPigmentS}) {
     if (amount <= 0) return;
     final int x0 = math.max(0, (cx - radius).floor());
     final int x1 = math.min(width - 1, (cx + radius).ceil());
@@ -358,9 +389,12 @@ class PaintGrid {
         thickness[i] += add;
         _wetTouch(x, y);
         final double cover = (add * 6.0).clamp(0.0, 1.0);
-        r[i] = _kmMix(r[i], pr, cover);
-        g[i] = _kmMix(g[i], pg, cover);
-        b[i] = _kmMix(b[i], pb, cover);
+        final double si = s[i];
+        final double sm = si * (1.0 - cover) + ps * cover;
+        r[i] = _kmMix2(r[i], si, pr, ps, cover, sm);
+        g[i] = _kmMix2(g[i], si, pg, ps, cover, sm);
+        b[i] = _kmMix2(b[i], si, pb, ps, cover, sm);
+        s[i] = sm;
         _touch(x, y);
       }
     }
@@ -415,6 +449,7 @@ class PaintGrid {
     final inG = _inG ??= Float32List(width * height);
     final inB = _inB ??= Float32List(width * height);
     final inW = _inW ??= Float32List(width * height); // incoming wetness × mass
+    final inS = _inS ??= Float32List(width * height); // incoming scattering × mass
 
     // Zero scratch over the bbox plus a 1-cell margin (flow writes to neighbours).
     for (int y = y0 - 1; y <= y1 + 1; y++) {
@@ -427,6 +462,7 @@ class PaintGrid {
         inG[i] = 0;
         inB[i] = 0;
         inW[i] = 0;
+        inS[i] = 0;
       }
     }
 
@@ -535,7 +571,7 @@ class PaintGrid {
 
         dH[i] -= out;
         // All outflow carries this cell's colour and wetness to where it lands.
-        final double ri = r[i], gi = g[i], bi = b[i];
+        final double ri = r[i], gi = g[i], bi = b[i], si = s[i];
         if (oL > 0) {
           final int j = i - 1;
           dH[j] += oL;
@@ -544,6 +580,7 @@ class PaintGrid {
           inG[j] += oL * gi;
           inB[j] += oL * bi;
           inW[j] += oL * weti;
+          inS[j] += oL * si;
         }
         if (oR > 0) {
           final int j = i + 1;
@@ -553,6 +590,7 @@ class PaintGrid {
           inG[j] += oR * gi;
           inB[j] += oR * bi;
           inW[j] += oR * weti;
+          inS[j] += oR * si;
         }
         if (oU > 0) {
           final int j = i - width;
@@ -562,6 +600,7 @@ class PaintGrid {
           inG[j] += oU * gi;
           inB[j] += oU * bi;
           inW[j] += oU * weti;
+          inS[j] += oU * si;
         }
         if (oD > 0) {
           final int j = i + width;
@@ -571,6 +610,7 @@ class PaintGrid {
           inG[j] += oD * gi;
           inB[j] += oD * bi;
           inW[j] += oD * weti;
+          inS[j] += oD * si;
         }
         if (gX > 0) {
           dH[gXj] += gX;
@@ -579,6 +619,7 @@ class PaintGrid {
           inG[gXj] += gX * gi;
           inB[gXj] += gX * bi;
           inW[gXj] += gX * weti;
+          inS[gXj] += gX * si;
         }
         if (gY > 0) {
           dH[gYj] += gY;
@@ -587,6 +628,7 @@ class PaintGrid {
           inG[gYj] += gY * gi;
           inB[gYj] += gY * bi;
           inW[gYj] += gY * weti;
+          inS[gYj] += gY * si;
         }
       }
     }
@@ -611,9 +653,13 @@ class PaintGrid {
           // pigment travels with the drip (no detached outline).
           final double nt = thickness[i];
           final double frac = (ia / (nt + 1e-6)).clamp(0.0, 1.0);
-          r[i] = _kmMix(r[i], inR[i] / ia, frac);
-          g[i] = _kmMix(g[i], inG[i] / ia, frac);
-          b[i] = _kmMix(b[i], inB[i] / ia, frac);
+          final double si = s[i];
+          final double sIn = inS[i] / ia; // scattering of the arriving paint
+          final double sm = si * (1.0 - frac) + sIn * frac;
+          r[i] = _kmMix2(r[i], si, inR[i] / ia, sIn, frac, sm);
+          g[i] = _kmMix2(g[i], si, inG[i] / ia, sIn, frac, sm);
+          b[i] = _kmMix2(b[i], si, inB[i] / ia, sIn, frac, sm);
+          s[i] = sm;
           wet[i] += (inW[i] / ia - wet[i]) * frac;
         }
         if (d != 0 || ia > 0) _touch(x, y);
@@ -704,6 +750,10 @@ class PaintGrid {
             src.b[i01] * w01 +
             src.b[i10] * w10 +
             src.b[i11] * w11;
+        s[di] = src.s[i00] * w00 +
+            src.s[i01] * w01 +
+            src.s[i10] * w10 +
+            src.s[i11] * w11;
         final double wv = src.wet[i00] * w00 +
             src.wet[i01] * w01 +
             src.wet[i10] * w10 +
@@ -803,11 +853,16 @@ class PaintGrid {
   }
 }
 
-// --- Kubelka-Munk subtractive colour mixing ---
+// --- Kubelka-Munk subtractive colour mixing (two-constant) ---
 //
-// Treat each RGB channel as a reflectance and mix in K/S (absorption over
-// scattering) space, which is how real pigments combine. Mixing [base] with
-// pigment [pig] at concentration [t] (0..1).
+// Treat each RGB channel as a reflectance R with absorption K and scattering
+// S, K/S = (1-R)²/(2R). Real pigments combine by mixing K and S SEPARATELY by
+// concentration, then R follows from K_mix/S_mix. That "two-constant" form is
+// what lets Titanium White (huge S, ~zero K) dilute a dark pigment's
+// absorption — i.e. actually tint — and keeps complements dark-but-chromatic.
+// The old single-constant form (averaging the K/S ratio) couldn't: white barely
+// lightened anything and multi-colour mixes collapsed to black/brown
+// (measured: see test/km_mix_swatches.py).
 
 /// Channel value (0..1) → 0..255, rejecting non-finite values so a stray
 /// NaN/Infinity can never reach `.round()` and crash the renderer.
@@ -830,8 +885,14 @@ double _ks(double reflectance) {
 
 double _unKs(double ks) => 1.0 + ks - math.sqrt(ks * ks + 2.0 * ks);
 
-double _kmMix(double base, double pig, double t) {
+/// Two-constant KM mix of one channel: [base] reflectance with scattering
+/// [baseS] and [pig] reflectance with scattering [pigS], at concentration [t]
+/// (0..1 of pigment). [sMix] is the mixture's scattering,
+/// `baseS·(1-t) + pigS·t` — passed in so the caller computes it once and stores
+/// it as the cell's new S. K_i = S_i·(K/S)_i; K_mix/S_mix → R.
+double _kmMix2(double base, double baseS, double pig, double pigS, double t,
+    double sMix) {
   if (t <= 0) return base;
-  final double ks = _ks(base) * (1.0 - t) + _ks(pig) * t;
-  return _unKs(ks).clamp(0.0, 1.0);
+  final double k = _ks(base) * baseS * (1.0 - t) + _ks(pig) * pigS * t;
+  return _unKs(k / sMix).clamp(0.0, 1.0);
 }
