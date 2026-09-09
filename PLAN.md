@@ -162,6 +162,23 @@ centrifugal spin, diagonal-sector mass ÷ axis-sector mass; isotropic ≈ 1.0):
 4-connected grid (a diagonal force can only land on an x/y neighbour). Paint
 conservation and spin tests unchanged.
 
+## Parking lot
+
+- **NDI output (visual performance idea, parked 2026-09-09).** Stream the live
+  canvas as an NDI source for projection/mixing (Resolume, OBS, vMix). Design
+  notes so this isn't lost: no maintained Dart package → a thin `dart:ffi` shim
+  over the NDI SDK (`libndi`; an iOS framework exists). Frame source already
+  exists: the rendered relief `ui.Image` → RGBA readback → `NDIlib_send_send_video_v2`
+  at ~30 fps. Catches: per-frame GPU→CPU readback is real cost on iPad; iOS needs
+  the Local Network permission (`NSLocalNetworkUsageDescription` +
+  `NSBonjourServices`) — a review-visible prompt, so keep it out of the store
+  build; SDK license/branding terms + bundling. Prototype on the Linux desktop
+  build first (where installation/projection use actually happens). If the real
+  need is just "into OBS", MJPEG/WebRTC is a fraction of the work.
+- **Canvas stays SQUARE (user decision, 2026-09-09).** A 4:3 canvas was
+  considered for "full width" but the user wants the artwork square; not
+  planned. The real concern was a border around the whole app (see App Store §).
+
 ## Performance — making the sim faster (PAUSED 2026-07-29)
 
 Investigated but not yet implemented. The complaint is spin-art mode; normal

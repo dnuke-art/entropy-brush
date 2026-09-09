@@ -30,7 +30,11 @@ class SlabPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    canvas.drawRect(Offset.zero & size, Paint()..color = const Color(0xFF161618));
+    // Match the app scaffold background exactly: a slightly different dark
+    // gray here made the 16pt layout padding read as a visible frame around
+    // the canvas area on iPad (two-tone border), even though the app itself is
+    // full-screen. Same color = seamless.
+    canvas.drawRect(Offset.zero & size, Paint()..color = const Color(0xFF1A1A1D));
     final slab = _slab(size);
 
     final t = [
