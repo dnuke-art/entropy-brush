@@ -8,7 +8,7 @@ import 'package:entropy_brush/sim/paint_grid.dart';
 
 // Pigments as in the control panel: (r, g, b, S).
 const red = [0.78, 0.12, 0.10, 0.6];
-const blue = [0.12, 0.20, 0.62, 0.35];
+const blue = [0.12, 0.20, 0.62, 0.5];
 const yellow = [0.92, 0.78, 0.12, 0.6];
 const white = [0.95, 0.94, 0.90, 4.0];
 

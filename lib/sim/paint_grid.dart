@@ -113,7 +113,7 @@ class PaintGrid {
 
   /// Scattering strength of the paint mixture in each cell — the "S" of
   /// two-constant Kubelka-Munk (opacity / tinting strength). Titanium white is
-  /// a strong scatterer (~4), cadmiums ~0.6, ultramarine ~0.35. Kept per cell
+  /// a strong scatterer (~4), cadmiums ~0.6, ultramarine ~0.5. Kept per cell
   /// (achromatic) so white can actually tint: mixing K and S separately, then
   /// taking K/S, lets a strong scatterer dilute absorption. Averaging the K/S
   /// *ratio* alone (single-constant KM) can't — white barely lightens and
@@ -132,9 +132,14 @@ class PaintGrid {
   /// cadmium-like opacity).
   static const double defaultPigmentS = 0.6;
 
-  /// Scattering of the bare canvas ground (a white, scattering gesso): thin
-  /// paint over it reads pale, like a glaze; opaque strokes are unaffected.
-  static const double canvasS = 2.0;
+  /// Scattering of the bare canvas ground. Kept equal to the pigment default
+  /// on purpose: `cover` is a tinting heuristic, not a volumetric
+  /// concentration, so a strongly scattering ground (tried S=2, "gesso") made
+  /// every partially-covered cell — the lanes between bristle tracks — wash
+  /// out to pale grey and strokes read as bundles of hard lines. With equal S
+  /// the two-constant mix reduces to the old look for paint-over-canvas and
+  /// only differs paint-over-paint, which is where it's wanted.
+  static const double canvasS = defaultPigmentS;
 
   // Dirty rectangle so the renderer only re-encodes what changed.
   int _dirtyMinX = 0, _dirtyMinY = 0, _dirtyMaxX = 0, _dirtyMaxY = 0;

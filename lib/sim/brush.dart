@@ -138,7 +138,7 @@ class Brush {
 
   // Loaded pigment for the next reload (colour + scattering strength).
   double _loadR = 0.1, _loadG = 0.2, _loadB = 0.7;
-  double _loadS = 0.35;
+  double _loadS = 0.5;
 
   void setPigment(double r, double g, double b,
       [double s = PaintGrid.defaultPigmentS]) {

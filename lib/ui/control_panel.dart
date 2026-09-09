@@ -22,7 +22,7 @@ class _Pigment {
 const double _swatchHeight = 40;
 
 const _pigments = <_Pigment>[
-  _Pigment('Ultramarine', 0.12, 0.20, 0.62, 0.35), // semi-transparent
+  _Pigment('Ultramarine', 0.12, 0.20, 0.62, 0.5), // semi-transparent
   _Pigment('Cadmium Red', 0.78, 0.12, 0.10, 0.6), // opaque
   _Pigment('Cadmium Yellow', 0.92, 0.78, 0.12, 0.6), // opaque
   _Pigment('Titanium White', 0.95, 0.94, 0.90, 4.0), // strong scatterer

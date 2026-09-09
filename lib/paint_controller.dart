@@ -168,7 +168,7 @@ class PaintController extends ChangeNotifier {
 
   // Current pigment, shared by the swatch picker and palette mixing.
   double _curR = 0.12, _curG = 0.20, _curB = 0.62;
-  double _curS = 0.35; // scattering (two-constant KM); Ultramarine default
+  double _curS = 0.5; // scattering (two-constant KM); Ultramarine default
 
   // Fixed simulation step keeps the bristle springs stable regardless of how
   // fast pointer events arrive. Fast strokes simply take more substeps.
@@ -243,7 +243,7 @@ class PaintController extends ChangeNotifier {
 
   /// [s] is the pigment's scattering strength (two-constant Kubelka-Munk):
   /// opacity / tinting strength. White is a strong scatterer (~4), cadmiums
-  /// ~0.6, ultramarine ~0.35.
+  /// ~0.6, ultramarine ~0.5.
   void setPigment(double r, double g, double b,
       {double s = PaintGrid.defaultPigmentS}) {
     _curR = r;
