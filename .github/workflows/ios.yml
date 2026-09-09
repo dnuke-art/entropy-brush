@@ -51,9 +51,11 @@ jobs:
       - name: Analyze
         run: flutter analyze --no-fatal-infos --no-fatal-warnings
 
-      # Marketing version from the tag (ios-v1.0.0 → 1.0.0) or pubspec. Build
-      # number = Unix epoch seconds: always the largest, so it can never be
-      # undercut by an older manual upload (TestFlight orders by build number).
+      # Marketing version: an explicit release tag (ios-v1.2.0 → 1.2.0), or on a
+      # manual build auto-bump to <major.minor>.<run number> so every TestFlight
+      # build shows as its own distinct version (no more identical "1.0.0"s to
+      # tell apart). Build number stays Unix epoch: monotonic and never undercut
+      # by an older upload (TestFlight orders by it); the version is what you read.
       - name: Compute version + build number
         id: ver
         run: |
@@ -61,7 +63,8 @@ jobs:
           if [[ "$REF" == ios-v* ]]; then
             VERSION="${REF#ios-v}"
           else
-            VERSION=$(grep '^version:' pubspec.yaml | sed -E 's/version:[[:space:]]*([0-9.]+).*/\1/')
+            BASE=$(grep '^version:' pubspec.yaml | sed -E 's/version:[[:space:]]*([0-9]+\.[0-9]+).*/\1/')
+            VERSION="${BASE}.${{ github.run_number }}"
           fi
           BUILD=$(date -u +%s)
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"

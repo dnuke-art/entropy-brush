@@ -607,6 +607,12 @@ class PaintController extends ChangeNotifier {
   // setQuality bilinear-resamples so the painting is preserved across the swap.
   bool autoSpinQuality = true;
   int spinQuality = qualityLow;
+
+  /// Cap on flow substeps per frame while spinning. Spin cost is
+  /// substeps × a full-grid flow step, so this is the other big dial (with
+  /// [spinQuality]); coarser grids move paint farther per step, so fewer
+  /// substeps at lower resolution keeps the fling speed about the same.
+  int maxSpinSubsteps = 16;
   bool _wasSpinning = false;
   int _qualityBeforeSpin = 0; // resolution to restore on spin stop; 0 = none
 
@@ -657,7 +663,8 @@ class PaintController extends ChangeNotifier {
       // move a bounded fraction of a cell's paint (the conservation cap), so
       // more substeps = paint reaches the rim in fewer frames.
       if (spinning) {
-        iters = math.max(iters, math.min(16, (2 + spinSpeed * 2.0).round()));
+        iters = math.max(
+            iters, math.min(maxSpinSubsteps, (2 + spinSpeed * 2.0).round()));
       }
       final double sdt = dt / iters;
       // With a directional body force on (gravity or spin), drop the isotropic

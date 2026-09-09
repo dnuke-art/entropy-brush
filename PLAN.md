@@ -116,6 +116,24 @@ with thickness — 0.08→22s, 1.58→70s, 5.92→**132s**. Fix in `flowStep`: c
 0.08→16s, 1.58→47s, 5.92→**47s (bounded)**; paint conservation unchanged. Added
 `PaintGrid.hasWet`/`wetArea` getters for diagnostics.
 
+## Performance — spin on iPad + build versioning (2026-09-09)
+
+Spin stayed slow after the drying fix because *during* spin the paint is flung
+across the whole canvas, so the wet region is inherently the full grid: cost =
+substeps × full-grid flow step. Measured full-grid step: 512²=14.2 ms,
+384²=8.4 ms, **256²=3.9 ms**, 192²=2.4 ms. iPad spin was 384²×5 ≈ 42 ms/frame
+(~12-16 fps). Fix (`main.dart`, mobile only): `spinQuality=256`,
+`maxSpinSubsteps=3` → ≈12 ms/frame (~45-55 fps). Coarser cells move paint
+farther per step so the fling feel holds (~90%); the base grid restores when
+spin stops. `maxSpinSubsteps` is a new controller dial (default 16).
+
+Build versioning: manual (workflow_dispatch) builds now auto-bump the marketing
+version to `<major.minor>.<run#>` so every TestFlight build is a distinct
+version (no more identical "1.0.0"s); explicit `ios-v*` tags still set it
+directly. Build number stays Unix epoch (monotonic; kept under 2^31 — a
+readable datestamp would exceed the existing epoch numbers / risk Apple's cap).
+Bumping the version costs no build time.
+
 ## Performance — making the sim faster (PAUSED 2026-07-29)
 
 Investigated but not yet implemented. The complaint is spin-art mode; normal

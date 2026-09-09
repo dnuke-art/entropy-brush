@@ -20,7 +20,7 @@ double bestMs(int reps, void Function() f) {
 }
 
 void main() {
-  for (final n in const [512, 768]) {
+  for (final n in const [192, 256, 384, 512]) {
     // A small brush dab → tiny wet bbox (what "normal painting" a stroke is).
     final g = PaintGrid(n, n);
     // Steady state: buffers filled by a first full render, dirt cleared (the

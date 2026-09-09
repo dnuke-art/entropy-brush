@@ -55,6 +55,14 @@ class _HomePageState extends State<HomePage>
         gridSize: (kIsWeb || isMobile)
             ? PaintController.qualityMed
             : PaintController.qualityHigh);
+    if (isMobile) {
+      // Spin cost = substeps × a full-grid flow step. On tablet CPUs run spin on
+      // a coarser grid with fewer substeps (measured: 384²×5 ≈ 42 ms/frame →
+      // 256²×3 ≈ 12 ms). Coarser cells fling paint farther per step, so the
+      // feel holds; the base grid is restored the moment spin stops.
+      controller.spinQuality = 256;
+      controller.maxSpinSubsteps = 3;
+    }
     _ticker = createTicker((_) => controller.frame());
     _ticker.start();
     _init();
