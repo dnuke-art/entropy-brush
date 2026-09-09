@@ -414,6 +414,13 @@ class PaintGrid {
   /// [dripYield] is the yield-stress threshold: paint is a yield-stress fluid,
   /// so only thickness ABOVE [dripYield] flows — thinner paint holds, and a drip
   /// leaves a ~[dripYield] film behind, which depletes it and ends the run.
+  /// [levelYield] is the leveling counterpart (Bingham): only the part of a
+  /// height step between neighbours ABOVE it levels, so paint slumps until its
+  /// brush marks are gentle and then holds them — impasto keeps its texture
+  /// instead of diffusing into a featureless pillow. [levelH0] makes thin films
+  /// less mobile than thick paint (thin-film flux grows steeply with height;
+  /// mobility = h/(h+levelH0)), so a scumble holds while a blob settles. Both
+  /// default to 0 = the plain diffusive leveling.
   void flowStep(double dt,
       {double flow = 0.2,
       double dryTime = 3.0,
@@ -421,6 +428,8 @@ class PaintGrid {
       double gravY = 0,
       double dripYield = 0.0,
       double dripWander = 0.0,
+      double levelYield = 0.0,
+      double levelH0 = 0.0,
       double spinCf = 0.0,
       double spinCor = 0.0,
       double spinCx = 0.0,
@@ -439,6 +448,7 @@ class PaintGrid {
     // drips. (Yield-stress / Bingham behaviour of the medium.)
     final double visc = profile.viscosity.clamp(0.1, 10.0);
     final double yld = dripYield * visc;
+    final double lvlY = levelYield * visc; // stiffer paint holds bigger steps
     final int x0 = math.max(1, _wetMinX);
     final int y0 = math.max(1, _wetMinY);
     final int x1 = math.min(width - 2, _wetMaxX);
@@ -490,17 +500,21 @@ class PaintGrid {
         final double weti = wet[i];
 
         // Leveling: push to any lower 4-neighbour, gated by this cell's wetness.
+        // Bingham: only the part of each step above the yield moves, and thin
+        // paint is less mobile than thick — so a stroke slumps to soft bristle
+        // ridges and then keeps them, while a fat blob still settles.
         double oL = 0, oR = 0, oU = 0, oD = 0;
         if (k > 0 && weti > 0.002) {
-          final double kw = k * weti;
-          final double hl = thickness[i - 1];
-          final double hr = thickness[i + 1];
-          final double hu = thickness[i - width];
-          final double hd = thickness[i + width];
-          if (hi > hl) oL = kw * (hi - hl);
-          if (hi > hr) oR = kw * (hi - hr);
-          if (hi > hu) oU = kw * (hi - hu);
-          if (hi > hd) oD = kw * (hi - hd);
+          final double mob = levelH0 > 0 ? hi / (hi + levelH0) : 1.0;
+          final double kw = k * weti * mob;
+          final double dl = hi - thickness[i - 1] - lvlY;
+          final double dr = hi - thickness[i + 1] - lvlY;
+          final double du = hi - thickness[i - width] - lvlY;
+          final double dd = hi - thickness[i + width] - lvlY;
+          if (dl > 0) oL = kw * dl;
+          if (dr > 0) oR = kw * dr;
+          if (du > 0) oU = kw * du;
+          if (dd > 0) oD = kw * dd;
         }
 
         // Body force (yield-stress): only paint ABOVE the holding film

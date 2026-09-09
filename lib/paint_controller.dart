@@ -604,6 +604,13 @@ class PaintController extends ChangeNotifier {
   double gravityStrength = 1.0;
   double dripYield = 0.07; // yield threshold: paint thinner than this won't drip
   double dripWander = 0.4; // lateral meander so drips aren't identical
+  // Leveling yield (Bingham): neighbour height steps below this hold, so wet
+  // strokes slump to soft bristle ridges and keep them instead of diffusing
+  // into smooth pillows. Measured on a fresh stroke: median step 0.002, p90
+  // 0.012, p99 0.025 — 0.004 keeps the striations and slumps only the crests.
+  double levelYield = 0.004;
+  // Thin films are less mobile than thick paint (mobility h/(h+levelH0)).
+  double levelH0 = 0.02;
   bool spinning = false; // centrifugal: spinning the canvas flings paint outward
   double spinSpeed = 1.5; // how fast the canvas spins (0 = stopped)
   bool spinCW = false; // rotation direction (sets the spiral handedness)
@@ -718,6 +725,8 @@ class PaintController extends ChangeNotifier {
             gravY: gy,
             dripYield: dripYield,
             dripWander: dripWander,
+            levelYield: levelYield,
+            levelH0: levelH0,
             spinCf: spinCf,
             spinCor: spinCor,
             spinCx: spinCx,

@@ -3,6 +3,23 @@
 Running list of planned work. See `README.md` and `docs/simulation.md` for the
 current model; this file is the "next up" backlog.
 
+## Simulation quality (2026-09-09)
+
+- [x] **Two-constant Kubelka-Munk.** Per-cell scattering `s`; K and S mixed
+      separately (`_kmMix2`). White tints (red+white 1.9× luminance), mixes stop
+      collapsing to brown. Canvas ground S = pigment default (a scattering
+      "gesso" washed out bristle lanes into hard lines). `test/km2_color_test.dart`.
+- [x] **Texture-preserving (Bingham) leveling.** Plain diffusion erased all
+      bristle relief in ~1.5 s (strokes → merged pillows). Now only the part of a
+      neighbour step above `levelYield` (0.004·viscosity) levels, and thin films
+      are less mobile (`levelH0` 0.02). Strokes slump to soft striations and hold
+      them; pours/drips unchanged. Visual A/B: `test/drip_shape_probe.dart`
+      (env `LEVEL_YIELD`/`LEVEL_H0`, 0/0 = old behaviour).
+- [ ] Glazing "medium" swatch (zero K, low S) — cheap now that S exists.
+- [ ] Wet-into-wet mud: damp colour transfer vs mass transfer at stroke contacts.
+- [ ] Lighting/tone (gamma, AO 0.6→~0.35, tone-map) — needs on-device eyeball.
+- [ ] Gradient brush load from the palette (multi-hue stroke).
+
 ## Palette & pigments
 
 - [ ] **Custom color picker for pigment swatches.** Add a small tap area in the

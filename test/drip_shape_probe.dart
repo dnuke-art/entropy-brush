@@ -47,6 +47,13 @@ void pourBlobs(PaintGrid grid) {
   grid.pile(n * 0.75, n * 0.28, 12, 40, 0.95, 0.94, 0.90, ps: 4.0);
 }
 
+// Leveling yield / thin-film mobility under test; 0/0 = the old diffusive
+// leveling. Override with env LEVEL_YIELD / LEVEL_H0.
+final double levelYield =
+    double.tryParse(Platform.environment['LEVEL_YIELD'] ?? '') ?? 0.004;
+final double levelH0 =
+    double.tryParse(Platform.environment['LEVEL_H0'] ?? '') ?? 0.02;
+
 void flow(PaintGrid grid,
     {required bool gravity,
     required double seconds,
@@ -64,7 +71,9 @@ void flow(PaintGrid grid,
           dryTime: dryTime,
           gravY: gy,
           dripYield: dripYield,
-          dripWander: dripWander);
+          dripWander: dripWander,
+          levelYield: levelYield,
+          levelH0: levelH0);
     }
   }
 }
