@@ -106,6 +106,17 @@ spin perf before submitting**.
       2026-09-09, green. Has everything: gestures, icon, export fix, collapsible
       sidebar, bounded drying, dirty-rect encode, coarse-spin-on-iPad, isotropic
       force cap, desktop-only inputs hidden. Use as `--build 1788923490`.
+- [!] **Cert-cap incident (2026-09-09):** build `1.0.10` failed at archive with
+      "Choose a certificate to revoke… maximum number of certificates" + "No iOS
+      App Development profiles". Cause: `xcodebuild archive` signs with a
+      *Development* identity; the CI keychain only had the Distribution p12, so
+      every run minted an "Apple Development: Created via API" cert — 10 piled up
+      in one day and hit Apple's cap. Fix applied: revoked all 10 via the API
+      (kept `FK562BG777` dist + `R43GSU6DJV` dev). `ios.yml` now also imports a
+      persistent **Development** p12 if `IOS_DEV_P12_BASE64`/`IOS_DEV_P12_PASSWORD`
+      exist (inert until set). **TODO (Dan, once):** request an *Apple Development*
+      cert via `tools/make_p12.sh` → set those two secrets → minting stops for good.
+      `1.0.9` (+1788923490) was unaffected and remains the store candidate.
 - [x] ASC uploader dry-run green (auth + app 6809919642 found; will rename the
       ASC name "Entropy Brush"→`entropybrush` and the auto-created version
       "1.0"→`1.0.9`; age rating 4+; all territories; review contact set).
