@@ -41,6 +41,7 @@ class _HomePageState extends State<HomePage>
     with SingleTickerProviderStateMixin {
   late final PaintController controller;
   late final Ticker _ticker;
+  bool _sidebarOpen = true; // wide layout: collapse the controls for a full canvas
 
   @override
   void initState() {
@@ -119,6 +120,32 @@ class _HomePageState extends State<HomePage>
     super.dispose();
   }
 
+  /// A small vertical tab on the right edge (collapse/expand the controls).
+  Widget _edgeTab(IconData icon, VoidCallback onTap) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        width: 22,
+        height: 80,
+        alignment: Alignment.center,
+        decoration: const BoxDecoration(
+          color: Color(0xE61C1C20),
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(11),
+            bottomLeft: Radius.circular(11),
+          ),
+          border: Border(
+            top: BorderSide(color: Color(0xFF55555C)),
+            left: BorderSide(color: Color(0xFF55555C)),
+            bottom: BorderSide(color: Color(0xFF55555C)),
+          ),
+        ),
+        child: Icon(icon, size: 20, color: const Color(0xFFBBBBC4)),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -130,17 +157,35 @@ class _HomePageState extends State<HomePage>
         if (wide) {
           return Scaffold(
             body: SafeArea(
-              child: Row(
+              child: Stack(
                 children: [
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: PaintCanvas(controller: controller),
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: PaintCanvas(controller: controller),
+                        ),
+                      ),
+                      if (_sidebarOpen)
+                        SizedBox(
+                          width: 320,
+                          child: ControlPanel(controller: controller),
+                        ),
+                    ],
                   ),
-                  SizedBox(
-                    width: 320,
-                    child: ControlPanel(controller: controller),
+                  // A tab on the panel's inner edge collapses/expands the
+                  // controls, so the canvas can go full-bleed.
+                  Positioned(
+                    right: _sidebarOpen ? 320 : 0,
+                    top: 0,
+                    bottom: 0,
+                    child: Center(
+                      child: _edgeTab(
+                        _sidebarOpen ? Icons.chevron_right : Icons.chevron_left,
+                        () => setState(() => _sidebarOpen = !_sidebarOpen),
+                      ),
+                    ),
                   ),
                 ],
               ),
