@@ -3,6 +3,65 @@
 Running list of planned work. See `README.md` and `docs/simulation.md` for the
 current model; this file is the "next up" backlog.
 
+## ROADMAP (PAUSED 2026-09-09 — resume here)
+
+**Where things stand**
+- App Store: `1.0.9` (build 1788923490) is **WAITING_FOR_REVIEW**, release type
+  MANUAL → after approval press *Release* in App Store Connect. Don't run
+  `tools/asc_listing.py` or swap the build while in review (resubmit = back of
+  the queue).
+- TestFlight: `1.0.12` (run #12, commit `1d701a2`) = KM2 colour + texture-
+  preserving leveling. Everything after it (Dry time 0, glazing medium) is on
+  `main` and live on the **web** (entropybrush.art deploys from `main`) but not
+  yet in a TestFlight build — dispatch `gh workflow run ios.yml --ref main`
+  when wanted (auto-bumps to the next `1.0.<run#>`).
+- Web: `main` → GitHub Action → `web-deploy` branch → DO App Platform behind
+  Cloudflare. Hard-refresh after a deploy; Dan tests here first.
+- CI signing: every run still mints an *Apple Development: Created via API*
+  cert (Apple caps these; cleared once already). Root-cause fix is wired in
+  `ios.yml` (optional `IOS_DEV_P12_BASE64`/`IOS_DEV_P12_PASSWORD`) — Dan runs
+  `tools/make_p12.sh` for an Apple Development cert and sets the two secrets.
+
+**Shipped this pass (all on main, all with tests)**
+1. Two-constant Kubelka-Munk mixing (`1ed5660`, `26dc6f6`) — white tints,
+   mixes don't collapse to brown. `test/km2_color_test.dart`.
+2. Texture-preserving (Bingham) leveling (`1d701a2`) — strokes keep bristle
+   ridges instead of blurring into pillows. `test/drip_shape_probe.dart`.
+3. Dry time slider to 0 = paint sets as brushed (`4c54508`).
+4. Glazing medium swatch (`cc1ab34`) — clear relief alone, transparent washes
+   when cut into pigment. `test/glaze_medium_test.dart`.
+
+**Next, in order (simulation — the thing Dan wants to keep pushing)**
+1. **Wet-into-wet mud control.** Colour rides moved mass 1:1 in `flowStep`'s
+   apply step (`tint = frac·hidingPower`), so wherever two wet strokes touch,
+   the boundary averages to grey and spin homogenises hue. Plan: damp colour
+   transfer to a fraction of mass transfer (e.g. `tint *= colourCarry`, ~0.5,
+   controller-tunable), keep drips carrying their colour (thick moving paint →
+   full carry). A/B with `drip_shape_probe` + a two-stroke-contact scenario;
+   assert stroke cores keep hue after 4 s of flow.
+2. **Lighting/tone pass** (`lib/ui/slab_painter.dart` shader): gamma-encode
+   the output, cavity AO 0.6→~0.35, gentle tone-map so ridges don't clip and
+   crevices don't crush. Can't be judged from Linux — ship to web, Dan eyeballs.
+3. **Gradient brush load** from the palette: sample the colour sequence the
+   load stroke passes over; brush load holds an ordered colour profile; a
+   canvas stroke transitions through it as it plays out.
+4. **Custom colour picker per swatch** (tap the swatch corner) — pairs with S
+   as an artist-facing "tinting strength / opacity" dial per pigment.
+5. Second red: cadmium red + ultramarine correctly makes maroon; a cool red
+   (alizarin/quinacridone-like: high blue reflectance, S≈0.3) would give real
+   violets. Cheap once the picker exists.
+
+**Method that worked (keep doing it):** before changing flow/colour physics,
+render before/after with `test/drip_shape_probe.dart` (PPM → PNG, look at it)
+and A/B against the previous commit in a `git worktree`; quantify (mean stroke
+colour, peak thickness) — twice this pass the numbers contradicted the eyeball.
+Changes that erase brush marks or desaturate fresh strokes read as regressions.
+
+**Release plan:** when the review clears → Release 1.0.9; then cut `1.1` from
+main (KM2, leveling, dry-0, glaze, seamless-frame fix, dev-p12 CI) via
+`tools/asc_listing.py --version 1.1.0` + new screenshots (the sim looks
+different now); canvas stays square; NDI parked.
+
 ## Simulation quality (2026-09-09)
 
 - [x] **Two-constant Kubelka-Munk.** Per-cell scattering `s`; K and S mixed
@@ -30,7 +89,8 @@ current model; this file is the "next up" backlog.
       so a swatch's pigment can be recolored to any custom color (not just the
       four presets). Persist the chosen color for the session.
 
-- [ ] **Add "medium" as a selectable option alongside pigments.** A non-pigment
+- [x] **Add "medium" as a selectable option alongside pigments.** (Done 2026-09-09,
+      see Simulation quality → glazing medium.) A non-pigment
       medium (linseed/glaze/transparent extender) selectable like a swatch. Loading
       medium thins/extends without adding pigment — lower opacity, more flow/gloss,
       lets you make glazes and washes. Mixing medium into a pigment on the palette
@@ -225,7 +285,7 @@ conservation and spin tests unchanged.
   considered for "full width" but the user wants the artwork square; not
   planned. The real concern was a border around the whole app (see App Store §).
 
-## Colour: paint goes brown / muddy (diagnosed 2026-09-09 — fix for 1.1)
+## Colour: paint goes brown / muddy (diagnosed 2026-09-09 — FIXED on main, ships in 1.1)
 
 User report: paint ends up brown and ugly; suspected lighting or mixing.
 Measured (`test/km_mix_swatches.py`, the app's real pigments through the app's
@@ -243,7 +303,8 @@ exact mixer):
   slightly *worse* (dark channels get darker in linear); raising the K/S floor
   (0.004→0.02) barely moves it (the dark channels are 0.10-0.12, above any
   sane floor). Neither is the lever.
-- **Proposed fix: two-constant KM.** Per pigment keep K and S (per channel),
+- **Fix landed (two-constant KM, `1ed5660` + `26dc6f6`; final Ultramarine S 0.5,
+  canvas ground S = pigment default).** Original proposal: per pigment keep K and S (per channel),
   mix K and S separately by concentration, then R from K_mix/S_mix. Starting
   S (scattering / tinting strength): White 4.0, Cadmium Red/Yellow 0.6,
   Ultramarine 0.35 (K_i = S_i·(K/S)_i from the pigment's reflectance). Result:
