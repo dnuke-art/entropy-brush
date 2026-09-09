@@ -731,7 +731,10 @@ class PaintController extends ChangeNotifier {
             spinCor: spinCor,
             spinCx: spinCx,
             spinCy: spinCy);
-        palette.flowStep(sdt, flow: doFlow ? 0.16 : 0.0, dryTime: dryTime * 0.6);
+        // The palette keeps a little working time even at canvas dry time 0,
+        // so mixing on it still blends.
+        palette.flowStep(sdt,
+            flow: doFlow ? 0.16 : 0.0, dryTime: math.max(0.3, dryTime * 0.6));
       }
     }
 

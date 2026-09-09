@@ -284,7 +284,9 @@ class _ControlPanelState extends State<ControlPanel> {
           _heading('Wet flow'),
           _slider('Flow (leveling)', c.flowRate, 0.0, 1.0,
               (v) => c.flowRate = v),
-          _slider('Dry time (s)', c.dryTime, 0.3, 10.0, (v) => c.dryTime = v),
+          // 0 = paint sets the instant it's laid (no leveling, no drips): pure
+          // impasto that keeps every bristle mark exactly as brushed.
+          _slider('Dry time (s)', c.dryTime, 0.0, 10.0, (v) => c.dryTime = v),
           AnimatedBuilder(
             animation: c,
             builder: (context, _) => SwitchListTile(

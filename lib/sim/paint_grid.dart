@@ -439,7 +439,20 @@ class PaintGrid {
     // curls the outward streaks into spirals like real spin art.
     final bool spin = spinCf != 0 || spinCor != 0;
     final bool grav = gravX != 0 || gravY != 0 || spin;
-    if (!_hasWet || (flow <= 0 && !grav)) return;
+    if (!_hasWet) return;
+    if (dryTime <= 0) {
+      // Instant dry: paint sets as brushed. Drop the wet set without moving
+      // anything, so nothing levels, drips or flings.
+      for (int y = math.max(0, _wetMinY); y <= math.min(height - 1, _wetMaxY); y++) {
+        final int base = y * width;
+        for (int x = math.max(0, _wetMinX); x <= math.min(width - 1, _wetMaxX); x++) {
+          wet[base + x] = 0;
+        }
+      }
+      _hasWet = false;
+      return;
+    }
+    if (flow <= 0 && !grav) return;
     // Lateral wander magnitude (cells) — a smooth noise field nudges drips
     // left/right as they fall so they meander and aren't identical.
     final double gMag = math.sqrt(gravX * gravX + gravY * gravY);
