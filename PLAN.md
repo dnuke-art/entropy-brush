@@ -123,8 +123,17 @@ spin perf before submitting**.
 - [ ] Screenshots from the iPad (iPad not on tailnet — share to self / Tailscale
       on iPad), validate 2064×2752 or 2752×2064 + strip alpha, place in
       `ios/appstore/screenshots/ipad-13/`.
-- [ ] Real upload: `asc_listing.py … --version 1.0.9 --build 1788923490` (after
-      ASC lists the build as VALID), then App Privacy + Submit in the web UI.
+- [x] **Listing filled + submitted-ready (2026-09-09):** `asc_listing.py --version
+      1.0.9 --build 1788923490` ran clean. App Info (name→`entropybrush`,
+      subtitle, privacy URL, categories), age rating 4+ (24 answers), all 175
+      territories, version 1.0→`1.0.9` (copyright, release type MANUAL),
+      description/keywords/promo/URLs, review contact + notes, **5 screenshots
+      uploaded (APP_IPAD_PRO_3GEN_129, all COMPLETE)**, build `1788923490`
+      VALID and **attached**. Chose to ship 1.0.9 (option A); the seamless-frame
+      color fix + Development-p12 CI fix ride in the first update.
+- [ ] **Dan's two web-UI clicks:** App Privacy questionnaire ("No, we do not
+      collect data" → Publish), then Add for Review → Submit to App Review.
+      Release type is MANUAL, so after approval it waits for a release click.
 - [ ] Screenshots at the app's own iPad 13" render size (2064×2752), no alpha.
 - [ ] Fill App Store Connect via `tools/asc_listing.py` (metadata/, screenshots/).
 - [ ] Manual clicks: App Privacy questionnaire + Submit for Review.
