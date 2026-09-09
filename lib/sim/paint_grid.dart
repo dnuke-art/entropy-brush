@@ -51,6 +51,16 @@ class PaintGrid {
   int _wetMinX = 0, _wetMinY = 0, _wetMaxX = 0, _wetMaxY = 0;
   bool _hasWet = false;
 
+  /// Whether any paint is still wet (and therefore still being simulated). The
+  /// flow sim only runs while this is true; once paint dries it drops out.
+  bool get hasWet => _hasWet;
+
+  /// Area (in cells) of the wet bounding box currently being simulated — a proxy
+  /// for the per-frame flow cost. Zero when everything has dried.
+  int get wetArea => _hasWet
+      ? (_wetMaxX - _wetMinX + 1) * (_wetMaxY - _wetMinY + 1)
+      : 0;
+
   // Scratch buffers for the flow step (allocated lazily, reused each frame).
   Float32List? _dH, _inA, _inR, _inG, _inB, _inW;
 
@@ -600,10 +610,16 @@ class PaintGrid {
         if (w > 0) {
           // Thicker paint dries slower (more volume → longer to set), so big
           // pools stay wet (and keep dripping) while thin trails dry and stop.
-          final double localDry =
-              math.exp(-dt / (dryBase * (1.0 + thickness[i] * 8.0)));
+          // Thicker paint dries slower (bigger pools stay wet), but cap the
+          // slowdown so even heavy impasto dries in bounded time instead of
+          // staying wet — and simulated — for minutes.
+          final double localDry = math.exp(
+              -dt / (dryBase * (1.0 + math.min(thickness[i] * 8.0, 3.0))));
           w *= localDry;
-          if (w < 0.004) w = 0;
+          // Drop near-dry paint from the wet set decisively: below this it
+          // barely flows (the flow gate is 0.002), so keeping it wet only
+          // bloats the simulated region and its bounding box.
+          if (w < 0.02) w = 0;
           wet[i] = w;
           if (w > 0) {
             if (x < nMinX) nMinX = x;

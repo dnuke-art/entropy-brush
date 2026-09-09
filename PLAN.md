@@ -105,6 +105,17 @@ spin perf before submitting**.
 - [ ] Fill App Store Connect via `tools/asc_listing.py` (metadata/, screenshots/).
 - [ ] Manual clicks: App Privacy questionnaire + Submit for Review.
 
+## Performance — wet-region drying fix (2026-09-09)
+
+Thick paint dried far too slowly, so the flow sim kept re-simulating the whole
+painted area every frame (worst during spin-art: adding marks tanked the frame
+rate). Root cause measured (`test/dry_probe.dart`): dry-out time grew unbounded
+with thickness — 0.08→22s, 1.58→70s, 5.92→**132s**. Fix in `flowStep`: cap the
+`thickness·8` dry-slowdown multiplier and raise the wet-drop threshold
+0.004→0.02 (below it paint barely flows, so it only bloats the wet bbox). After:
+0.08→16s, 1.58→47s, 5.92→**47s (bounded)**; paint conservation unchanged. Added
+`PaintGrid.hasWet`/`wetArea` getters for diagnostics.
+
 ## Performance — making the sim faster (PAUSED 2026-07-29)
 
 Investigated but not yet implemented. The complaint is spin-art mode; normal
