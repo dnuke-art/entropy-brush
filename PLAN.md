@@ -10,10 +10,10 @@ current model; this file is the "next up" backlog.
   Information Needed** (new-account questionnaire, 2026-09-10). Answers are in
   `ios/appstore/metadata/review_notes.txt` and in ASC's review notes. The
   version was renamed **`1.0.12`** and build **1788937359** (KM2 + leveling)
-  attached via the API; state PREPARE_FOR_SUBMISSION, release type MANUAL.
-  Dan: attach an iPad screen recording + paste the answers in Resolution
-  Center, then *Resubmit*. After approval press *Release*. Don't run
-  `tools/asc_listing.py` mid-review.
+  attached via the API. **Resubmitted 2026-09-10 19:40 UTC** with the six
+  answers + screen recording (in the Resolution Center reply and on the review
+  notes); state **WAITING_FOR_REVIEW**, release type MANUAL → after approval
+  press *Release*. Don't run `tools/asc_listing.py` mid-review.
 - TestFlight: `1.0.12` (run #12, commit `1d701a2`) = KM2 colour + texture-
   preserving leveling — now also the App Store candidate. Everything after it (Dry time 0, glazing medium) is on
   `main` and live on the **web** (entropybrush.art deploys from `main`) but not
