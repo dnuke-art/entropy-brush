@@ -6,12 +6,16 @@ current model; this file is the "next up" backlog.
 ## ROADMAP (PAUSED 2026-09-09 — resume here)
 
 **Where things stand**
-- App Store: `1.0.9` (build 1788923490) is **WAITING_FOR_REVIEW**, release type
-  MANUAL → after approval press *Release* in App Store Connect. Don't run
-  `tools/asc_listing.py` or swap the build while in review (resubmit = back of
-  the queue).
+- App Store: first submission (1.0.9) came back **REJECTED — Guideline 2.1
+  Information Needed** (new-account questionnaire, 2026-09-10). Answers are in
+  `ios/appstore/metadata/review_notes.txt` and in ASC's review notes. The
+  version was renamed **`1.0.12`** and build **1788937359** (KM2 + leveling)
+  attached via the API; state PREPARE_FOR_SUBMISSION, release type MANUAL.
+  Dan: attach an iPad screen recording + paste the answers in Resolution
+  Center, then *Resubmit*. After approval press *Release*. Don't run
+  `tools/asc_listing.py` mid-review.
 - TestFlight: `1.0.12` (run #12, commit `1d701a2`) = KM2 colour + texture-
-  preserving leveling. Everything after it (Dry time 0, glazing medium) is on
+  preserving leveling — now also the App Store candidate. Everything after it (Dry time 0, glazing medium) is on
   `main` and live on the **web** (entropybrush.art deploys from `main`) but not
   yet in a TestFlight build — dispatch `gh workflow run ios.yml --ref main`
   when wanted (auto-bumps to the next `1.0.<run#>`).
