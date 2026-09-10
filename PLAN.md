@@ -34,6 +34,10 @@ current model; this file is the "next up" backlog.
 3. Dry time slider to 0 = paint sets as brushed (`4c54508`).
 4. Glazing medium swatch (`cc1ab34`) — clear relief alone, transparent washes
    when cut into pigment. `test/glaze_medium_test.dart`.
+5. Manual canvas rotation: spin now settles into `canvasRoll` when switched
+   off (the rotate slider agrees with where it stopped), *Square up* snaps to
+   the nearest 90°, and a two-finger twist on the canvas rotates it (7° dead
+   zone so pinches don't wobble; disabled while spinning).
 
 **Next, in order (simulation — the thing Dan wants to keep pushing)**
 1. **Wet-into-wet mud control.** Colour rides moved mass 1:1 in `flowStep`'s

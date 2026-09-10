@@ -134,6 +134,32 @@ class PaintController extends ChangeNotifier {
     notifyListeners();
   }
 
+  static double _wrapPi(double a) => (a + math.pi) % (2 * math.pi) - math.pi;
+
+  /// Fold whatever the live spin wound up into the user's roll, so the
+  /// orientation the canvas *stopped at* is where the rotate slider / twist
+  /// gesture / Square up start from (instead of a hidden offset they fight).
+  void _settleSpin() {
+    if (_spinAngle == 0) return;
+    canvasRoll = _wrapPi(canvasRoll + _spinAngle);
+    _spinAngle = 0.0;
+  }
+
+  /// Rotate the canvas in-plane by [delta] radians (twist gesture / keys).
+  void rotateBy(double delta) {
+    _settleSpin();
+    canvasRoll = _wrapPi(canvasRoll + delta);
+    notifyListeners();
+  }
+
+  /// Snap the canvas to the nearest quarter turn — the fix for spin art
+  /// stopping at an awkward angle. Keeps the painting as-is, only the view.
+  void squareUp() {
+    _settleSpin();
+    canvasRoll = _wrapPi((canvasRoll / (math.pi / 2)).round() * (math.pi / 2));
+    notifyListeners();
+  }
+
   void viewChanged() => notifyListeners();
 
   // --- canvas substrate texture (Perlin relief) ---
@@ -611,7 +637,17 @@ class PaintController extends ChangeNotifier {
   double levelYield = 0.004;
   // Thin films are less mobile than thick paint (mobility h/(h+levelH0)).
   double levelH0 = 0.02;
-  bool spinning = false; // centrifugal: spinning the canvas flings paint outward
+  // Centrifugal: spinning the canvas flings wet paint outward. Turning it off
+  // settles the wound-up spin into canvasRoll (see _settleSpin) so the canvas
+  // stays where it stopped but the rotate controls now agree with it.
+  bool _spinning = false;
+  bool get spinning => _spinning;
+  set spinning(bool v) {
+    if (_spinning == v) return;
+    _spinning = v;
+    if (!v) _settleSpin();
+    notifyListeners();
+  }
   double spinSpeed = 1.5; // how fast the canvas spins (0 = stopped)
   bool spinCW = false; // rotation direction (sets the spiral handedness)
   final Stopwatch _frameClock = Stopwatch()..start();

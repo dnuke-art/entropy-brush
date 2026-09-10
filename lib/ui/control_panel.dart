@@ -324,6 +324,17 @@ class _ControlPanelState extends State<ControlPanel> {
             ),
           ),
           _slider('Spin speed', c.spinSpeed, 0.0, 6.0, (v) => c.spinSpeed = v),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: () {
+                c.squareUp();
+                setState(() {});
+              },
+              icon: const Icon(Icons.crop_square, size: 16),
+              label: const Text('Square up canvas'),
+            ),
+          ),
           AnimatedBuilder(
             animation: c,
             builder: (context, _) => SwitchListTile(
@@ -414,9 +425,12 @@ class _ControlPanelState extends State<ControlPanel> {
             c.viewChanged();
           }),
           _slider('Canvas rotate', c.canvasRoll, -3.14159, 3.14159, (v) {
+            c.resetSpin(); // the slider is the whole orientation
             c.canvasRoll = v;
             c.viewChanged();
           }),
+          const Text('two-finger twist on the canvas also rotates it',
+              style: TextStyle(fontSize: 10, color: Colors.white30)),
           _slider('Canvas thickness', c.canvasThicknessFrac, 0.0, 0.2, (v) {
             c.canvasThicknessFrac = v;
             c.viewChanged();
@@ -436,6 +450,16 @@ class _ControlPanelState extends State<ControlPanel> {
                 setState(() {});
               },
               child: const Text('Reset view'),
+            ),
+          ),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton(
+              onPressed: () {
+                c.squareUp();
+                setState(() {});
+              },
+              child: const Text('Square up (nearest 90°)'),
             ),
           ),
 

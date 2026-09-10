@@ -38,6 +38,10 @@ class _PaintCanvasState extends State<PaintCanvas> {
   double _baseDist = 1, _baseZoom = 1, _basePanX = 0, _basePanY = 0;
   Offset _baseMid = Offset.zero;
   double _anchorX = 0, _anchorY = 0; // canvas-space point held under the fingers
+  double _baseAngle = 0; // finger-pair angle at the start of the gesture
+  double _baseRoll = 0;
+  bool _twisting = false; // twist past the dead zone → gesture also rotates
+  static const double _twistDeadZone = 0.12; // rad (~7°) before rotation kicks in
 
   SlabView _slab(Size size) => _slabWith(
       size, controller.zoom, controller.panX, controller.panY);
@@ -89,6 +93,9 @@ class _PaintCanvasState extends State<PaintCanvas> {
     _baseZoom = controller.zoom;
     _basePanX = controller.panX;
     _basePanY = controller.panY;
+    _baseAngle = (p[1] - p[0]).direction;
+    _baseRoll = controller.displayRoll;
+    _twisting = false;
     final a = _slab(size).screenToCanvas(_baseMid.dx, _baseMid.dy);
     _anchorX = a.x;
     _anchorY = a.y;
@@ -101,6 +108,23 @@ class _PaintCanvasState extends State<PaintCanvas> {
     final newMid = (p[0] + p[1]) / 2;
     final newZoom = (_baseZoom * (newDist / _baseDist)).clamp(0.5, 12.0);
     controller.zoom = newZoom;
+    // Two-finger twist rotates the canvas in-plane (how you'd straighten a
+    // sheet of paper on a table). A small dead zone keeps an ordinary pinch
+    // from wobbling the canvas; once past it the rotation tracks the fingers.
+    double dAng = (p[1] - p[0]).direction - _baseAngle;
+    dAng = (dAng + math.pi) % (2 * math.pi) - math.pi;
+    // While the canvas is spinning the live spin owns the roll; twisting
+    // would fight it frame by frame, so only pinch/pan apply then.
+    if (!controller.spinning && !_twisting && dAng.abs() > _twistDeadZone) {
+      _twisting = true;
+      _baseAngle += dAng.sign * _twistDeadZone; // no jump when it engages
+      dAng -= dAng.sign * _twistDeadZone;
+    }
+    if (_twisting) {
+      controller.resetSpin();
+      controller.canvasRoll =
+          (_baseRoll + dAng + math.pi) % (2 * math.pi) - math.pi;
+    }
     // Keep the canvas point that was under the fingers pinned to the moving
     // midpoint (combined pan + zoom), recomputed from the baseline each frame
     // so it never drifts. Same anchoring trick as the scroll-zoom.
