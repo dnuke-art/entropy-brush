@@ -1,10 +1,15 @@
-entropybrush is a self-contained painting app. No account or login is required and it collects no data — everything runs on-device.
+Answers to App Review's standard Guideline 2.1 "Information Needed" questions (kept here for every submission):
 
-To try it:
-- Pick a color from the palette along the bottom.
-- Drag one finger on the canvas to paint a stroke; tap for a single dab.
-- Two fingers pan and pinch-zoom the canvas.
-- The circular gizmo (top-right) tilts the canvas in 3D; drag it while painting to rotate the view.
-- The spin control flings wet paint outward for spin-art.
+1. Screen recording: provided in the Resolution Center reply, captured on a physical iPad running the current iPadOS, starting from app launch and showing the typical flow (pick a pigment, paint strokes, mix on the palette, tilt/light the canvas, spin, export). The app has no account registration, login, or account deletion; no user-generated content is shared or published (paintings stay on the device unless the user exports them through the system share sheet, so no reporting/blocking mechanisms apply); and there is no paid content, subscription, or in-app purchase — so none of those flows exist to record.
 
-iPad only.
+2. Purpose and target audience: entropybrush is a physics-based oil painting studio for iPad. Instead of faking brush marks with filters, it simulates the paint: bristles carry a load of pigment that runs out as you drag, wet paint levels, blends wet-on-wet, drips under gravity and dries over time, and thick strokes build real impasto relief that is lit and tilted in 3D. Pigments mix subtractively (Kubelka-Munk), so blue and yellow make green and white tints. It is for artists, hobbyists, students and anyone who enjoys the tactile feel of thick paint — a creative tool, not a game. General audience; no age-restricted content.
+
+3. Setup and access: No account, sign-in, credentials, sample files or hardware are required — launch the app and paint. Core flow (about a minute): (a) tap a pigment swatch in the side panel (Ultramarine, Cadmium Red, Cadmium Yellow, Titanium White, glazing medium); (b) drag one finger on the canvas to paint a stroke, tap for a single dab — the brush's paint load runs out and can be reloaded; (c) press and hold on the mixing palette to squeeze out paint, drag to mix, then "Load brush" to paint with the mixture; (d) two fingers pan and pinch-zoom; the circular orbit gizmo (top-right of the canvas) tilts the canvas in 3D so the relief and lighting are visible, and can be used while painting; (e) the Flow / Dry time / Drips / Spin controls change how the wet paint behaves; (f) Export shares the painting as an image or as a 3D model (STL/GLB) of the painted surface through the system share sheet. The side panel collapses via the tab on its edge for a full-screen canvas. iPad only.
+
+4. External services: None. entropybrush is fully self-contained and works offline. The brush, paint-flow, drying, pigment-mixing and relief-rendering simulations are all computed on-device by the app's own code. It uses no data providers, authentication services, payment processors, analytics, advertising, third-party SDKs that phone home, or AI/ML services, and it makes no network requests. The only system integration is the share sheet used for export.
+
+5. Regional differences: None. The app functions identically in every region, with a single English localization.
+
+6. Regulated industry / protected material: Not applicable. entropybrush is a general-purpose painting tool; it includes no third-party protected content (no bundled artwork, fonts or media other than its own UI assets) and does not operate in a regulated industry.
+
+Privacy: no data is collected or transmitted (consistent with the App Privacy answers: "No, we do not collect data"). Support: https://entropybrush.art/support.html · Privacy policy: https://entropybrush.art/privacy.html. iPad only; finger input works, Apple Pencil is supported but not required.
