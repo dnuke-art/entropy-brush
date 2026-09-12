@@ -72,6 +72,7 @@ class _ShotHostState extends State<_ShotHost> {
       return;
     }
     c.brush.config.infiniteLoad = true;
+    c.brush.config.headRadius = 22.0; // chunkier marks read at thumbnail size
     c.flowRate = 0.0;
     c.spinning = false;
     c.gravityDrips = false;
@@ -112,6 +113,10 @@ class _ShotHostState extends State<_ShotHost> {
     // controls in an end drawer behind a pull tab on the right edge.
     return LayoutBuilder(builder: (context, constraints) {
       final bool wide = constraints.maxWidth >= 720;
+      // The canvas is sized from the shorter screen edge, so on a tall phone
+      // it comes out small; zoom in so the painting fills the width.
+      final double wantZoom = wide ? 1.0 : 1.9;
+      if (c.zoom != wantZoom) c.zoom = wantZoom;
       if (wide) {
         return Scaffold(
           backgroundColor: const Color(0xFF1A1A1D),

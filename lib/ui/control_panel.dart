@@ -33,6 +33,8 @@ const _pigments = <_Pigment>[
   _Pigment('Medium (glaze)', 1.0, 1.0, 1.0, 0.05),
 ];
 
+const String _buildTag = String.fromEnvironment('BUILD_TAG');
+
 class ControlPanel extends StatefulWidget {
   const ControlPanel({super.key, required this.controller});
 
@@ -89,7 +91,10 @@ class _ControlPanelState extends State<ControlPanel> {
     final cfg = c.brush.config;
     final light = c.light;
 
-    return Container(
+    // Material, not a plain coloured box: the SwitchListTiles below paint their
+    // ink on the nearest Material, and a ColoredBox in between trips a debug
+    // assertion (which also broke the integration-test screenshot capture).
+    return Material(
       color: const Color(0xFF202024),
       child: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
@@ -100,17 +105,23 @@ class _ControlPanelState extends State<ControlPanel> {
           const Text('physically simulated bristles · impasto relief',
               style: TextStyle(fontSize: 11, color: Colors.white38)),
           const SizedBox(height: 6),
-          // Build tag — confirm you're running the latest. Bump on each build.
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            decoration: BoxDecoration(
-              color: Colors.teal.shade700,
-              borderRadius: BorderRadius.circular(4),
+          // Build tag — confirm you're running the latest. CI passes
+          // --dart-define=BUILD_TAG=<version (build)>; local/dev builds and
+          // the screenshot renderer leave it empty and show nothing.
+          if (_buildTag.isNotEmpty) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: Colors.teal.shade700,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text('build: $_buildTag',
+                  style: const TextStyle(
+                      fontSize: 11, fontWeight: FontWeight.w600)),
             ),
-            child: const Text('build: entropybrush · 07-24 #32',
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
-          ),
-          const SizedBox(height: 16),
+            const SizedBox(height: 10),
+          ],
+          const SizedBox(height: 6),
 
           _heading('Performance'),
           AnimatedBuilder(

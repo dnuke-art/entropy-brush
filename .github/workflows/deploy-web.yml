@@ -31,7 +31,7 @@ jobs:
       # e.g. the paint-flow sim) and emits a dart2js JS bundle alongside it;
       # flutter_bootstrap.js loads wasm where WasmGC is supported and falls back
       # to JS otherwise, so older browsers are unaffected.
-      - run: flutter build web --wasm --release --base-href /
+      - run: flutter build web --wasm --release --base-href / --dart-define=BUILD_TAG="web $(date -u +%Y-%m-%d) #${{ github.run_number }}"
 
       # Publish build/web to the web-deploy branch (single clean commit).
       - uses: peaceiris/actions-gh-pages@v4

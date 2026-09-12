@@ -122,7 +122,8 @@ jobs:
         run: |
           flutter build ios --release --no-codesign \
             --build-name=${{ steps.ver.outputs.version }} \
-            --build-number=${{ steps.ver.outputs.build }}
+            --build-number=${{ steps.ver.outputs.build }} \
+            --dart-define=BUILD_TAG="${{ steps.ver.outputs.version }} (${{ steps.ver.outputs.build }})"
 
       - name: Archive with automatic signing
         env:
