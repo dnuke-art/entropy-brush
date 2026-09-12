@@ -6,18 +6,21 @@ current model; this file is the "next up" backlog.
 ## ROADMAP (PAUSED 2026-09-09 — resume here)
 
 **Where things stand**
-- App Store: first submission (1.0.9) came back **REJECTED — Guideline 2.1
-  Information Needed** (new-account questionnaire, 2026-09-10). Answers are in
-  `ios/appstore/metadata/review_notes.txt` and in ASC's review notes. The
-  version was renamed **`1.0.12`** and build **1788937359** (KM2 + leveling)
-  attached via the API. **Resubmitted 2026-09-10 19:40 UTC** with the six
-  answers + screen recording (in the Resolution Center reply and on the review
-  notes); state **WAITING_FOR_REVIEW**, release type MANUAL → after approval
-  press *Release*. Don't run `tools/asc_listing.py` mid-review.
-- TestFlight: `1.0.12` (run #12, commit `1d701a2`) = KM2 colour + texture-
-  preserving leveling — now also the App Store candidate. Everything after it (Dry time 0, glazing medium) is on
-  `main` and live on the **web** (entropybrush.art deploys from `main`) but not
-  yet in a TestFlight build — dispatch `gh workflow run ios.yml --ref main`
+- App Store: **1.0.14 Universal (iPhone + iPad), build 1789195265, submitted
+  2026-09-12 12:40 UTC, state WAITING_FOR_REVIEW**, release type MANUAL →
+  after approval press *Release*. History: 1.0.9 REJECTED (2.1 Information
+  Needed, 2026-09-10) → answered + recording, resubmitted as 1.0.12 (iPad-only)
+  → after the phone TestFlight looked good, that submission was cancelled via
+  the API and the same version renamed 1.0.14 with the Universal build and an
+  iPhone 6.9" screenshot set (rendered locally by `tools/render_screenshots.sh
+  iphone`), then submitted via the API (`asc_submit.py` in the skill; no
+  browser needed). Don't run `tools/asc_listing.py` mid-review.
+- TestFlight: `1.0.14` (run #14, commit `d346193`) = Universal + everything
+  through the manual rotation fix — also the App Store candidate. After a
+  `git push`, verify `gh run view <id> --json headSha` before trusting a
+  dispatched build (#13 raced the push and shipped the previous commit).
+  Later commits (BUILD_TAG banner, Material panel) are on `main`/web only —
+  dispatch `gh workflow run ios.yml --ref main`
   when wanted (auto-bumps to the next `1.0.<run#>`).
 - Web: `main` → GitHub Action → `web-deploy` branch → DO App Platform behind
   Cloudflare. Hard-refresh after a deploy; Dan tests here first.
