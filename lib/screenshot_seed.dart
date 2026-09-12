@@ -8,16 +8,24 @@ import 'ui/paint_canvas.dart';
 
 /// App Store screenshot scenes. Each seeds a fresh [PaintController] with a
 /// showcase painting, sets a flattering 3D tilt + light, and rebuilds the REAL
-/// iPad layout (canvas + control panel) so the capture is the actual app — not
-/// a mockup. Driven by integration_test/screenshots_test.dart on an iPad Pro
-/// simulator. Tune the seeds here; re-run `ios-screenshots.yml` to re-capture.
+/// app layout (iPad: canvas + control panel; iPhone: canvas + drawer) so the capture is the actual app — not
+/// a mockup. Driven by integration_test/screenshots_test.dart on an iPad Pro or
+/// iPhone Pro Max simulator. Tune the seeds here; re-run `ios-screenshots.yml` to re-capture.
 typedef Seed = void Function(PaintController c);
 
 class ScreenshotScene {
   const ScreenshotScene(this.seed,
-      {this.tiltX, this.tiltY, this.azimuth, this.elevation});
+      {this.tiltX,
+      this.tiltY,
+      this.azimuth,
+      this.elevation,
+      this.showControls = false});
   final Seed seed;
   final double? tiltX, tiltY, azimuth, elevation;
+
+  /// On the narrow (phone) layout the controls live in a drawer; set this to
+  /// capture the scene with that drawer open so one shot shows the panel.
+  final bool showControls;
   Widget build() => _ShotHost(scene: this);
 }
 
@@ -29,7 +37,11 @@ final Map<String, ScreenshotScene> screenshotScenes = {
   '03-impasto': ScreenshotScene(_seedImpasto,
       tiltX: 0.66, tiltY: 0.34, azimuth: 3.7, elevation: 0.42),
   '04-mixing': ScreenshotScene(_seedMixing,
-      tiltX: 0.40, tiltY: 0.26, azimuth: 2.0, elevation: 0.9),
+      tiltX: 0.40,
+      tiltY: 0.26,
+      azimuth: 2.0,
+      elevation: 0.9,
+      showControls: true),
 };
 
 // --- scene host: real UI, seeded controller, frozen sim -----------------------
@@ -43,6 +55,8 @@ class _ShotHost extends StatefulWidget {
 
 class _ShotHostState extends State<_ShotHost> {
   late final PaintController c;
+  final GlobalKey<ScaffoldState> _scaffold = GlobalKey<ScaffoldState>();
+  bool _drawerOpened = false;
 
   @override
   void initState() {
@@ -75,6 +89,14 @@ class _ShotHostState extends State<_ShotHost> {
     c.reliefImage = img;
     c.viewChanged(); // repaint the static canvas with the finished relief
     if (mounted) setState(() {});
+    // Phone layout only: pop the controls drawer for scenes that ask for it.
+    if (mounted && widget.scene.showControls && !_drawerOpened) {
+      final st = _scaffold.currentState;
+      if (st != null && st.hasEndDrawer) {
+        _drawerOpened = true;
+        st.openEndDrawer();
+      }
+    }
   }
 
   @override
@@ -85,23 +107,75 @@ class _ShotHostState extends State<_ShotHost> {
 
   @override
   Widget build(BuildContext context) {
-    // The wide (iPad) layout from main.dart: canvas + fixed control sidebar.
-    return Scaffold(
-      backgroundColor: const Color(0xFF1A1A1D),
-      body: SafeArea(
-        child: Row(
-          children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
+    // Mirror main.dart: wide screens (iPad) get the canvas + fixed control
+    // sidebar; narrow screens (iPhone) get a full-bleed canvas with the
+    // controls in an end drawer behind a pull tab on the right edge.
+    return LayoutBuilder(builder: (context, constraints) {
+      final bool wide = constraints.maxWidth >= 720;
+      if (wide) {
+        return Scaffold(
+          backgroundColor: const Color(0xFF1A1A1D),
+          body: SafeArea(
+            child: Row(
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: PaintCanvas(controller: c),
+                  ),
+                ),
+                SizedBox(width: 320, child: ControlPanel(controller: c)),
+              ],
+            ),
+          ),
+        );
+      }
+      return Scaffold(
+        key: _scaffold,
+        backgroundColor: const Color(0xFF1A1A1D),
+        endDrawer: Drawer(
+          width: math.min(340, constraints.maxWidth * 0.86),
+          backgroundColor: const Color(0xFF1A1A1D),
+          child: SafeArea(child: ControlPanel(controller: c)),
+        ),
+        body: SafeArea(
+          child: Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8),
                 child: PaintCanvas(controller: c),
               ),
-            ),
-            SizedBox(width: 320, child: ControlPanel(controller: c)),
-          ],
+              Positioned(
+                right: 0,
+                top: 0,
+                bottom: 0,
+                child: Center(
+                  child: Container(
+                    width: 22,
+                    height: 80,
+                    alignment: Alignment.center,
+                    decoration: const BoxDecoration(
+                      color: Color(0xE61C1C20),
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(11),
+                        bottomLeft: Radius.circular(11),
+                      ),
+                      border: Border(
+                        top: BorderSide(color: Color(0xFF55555C)),
+                        left: BorderSide(color: Color(0xFF55555C)),
+                        bottom: BorderSide(color: Color(0xFF55555C)),
+                      ),
+                    ),
+                    child: const Icon(Icons.chevron_left,
+                        size: 20, color: Color(0xFFBBBBC4)),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    });
   }
 }
 

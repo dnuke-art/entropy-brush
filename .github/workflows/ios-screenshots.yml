@@ -16,6 +16,14 @@ jobs:
   screenshots:
     runs-on: macos-26
     timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - device: ipad-13     # iPad Pro 13": 2064x2752 (covers all iPads)
+            kind: ipad
+          - device: iphone-6.9  # iPhone Pro Max: 1320x2868 (covers all iPhones)
+            kind: iphone
 
     steps:
       - name: Checkout repository
@@ -42,18 +50,20 @@ jobs:
       - name: Build app for the simulator (generates Podfile + pods)
         run: flutter build ios --simulator --debug
 
-      - name: Boot an iPad Pro 12.9"/13" simulator
+      - name: Boot the ${{ matrix.device }} simulator
         id: sim
         run: |
-          read RUNTIME DEVTYPE NAME < <(python3 tools/pick_ipad_sim.py)
+          read RUNTIME DEVTYPE NAME < <(python3 tools/pick_ipad_sim.py ${{ matrix.kind }})
           echo "runtime: $RUNTIME"; echo "device type: $DEVTYPE ($NAME)"
-          UDID=$(xcrun simctl create ShotPad "$DEVTYPE" "$RUNTIME")
+          UDID=$(xcrun simctl create ShotDev "$DEVTYPE" "$RUNTIME")
           xcrun simctl boot "$UDID"
           xcrun simctl bootstatus "$UDID" -b
           echo "udid=$UDID" >> "$GITHUB_OUTPUT"
 
       - name: Capture screenshots
         timeout-minutes: 12
+        env:
+          SHOT_DIR: ios/appstore/screenshots/${{ matrix.device }}
         run: |
           flutter drive \
             --driver=test_driver/integration_test.dart \
@@ -66,7 +76,7 @@ jobs:
         if: always()
         run: |
           shopt -s nullglob
-          for f in ios/appstore/screenshots/ipad-13/*.png; do
+          for f in ios/appstore/screenshots/${{ matrix.device }}/*.png; do
             mogrify -alpha off "$f"
             echo "$(sips -g pixelWidth -g pixelHeight "$f" | tr '\n' ' ')  $f"
           done
@@ -75,6 +85,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: appstore-screenshots-ipad-13
-          path: ios/appstore/screenshots/ipad-13/*.png
+          name: appstore-screenshots-${{ matrix.device }}
+          path: ios/appstore/screenshots/${{ matrix.device }}/*.png
           if-no-files-found: error

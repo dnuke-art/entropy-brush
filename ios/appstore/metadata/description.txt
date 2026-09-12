@@ -1,4 +1,4 @@
-entropybrush is a physics-based oil painting studio for iPad. Instead of faking brush marks with filters, it simulates the paint itself: loaded bristles lay down real pigment, wet paint flows and levels, and thick strokes build genuine impasto relief that catches the light.
+entropybrush is a physics-based oil painting studio for iPhone and iPad. Instead of faking brush marks with filters, it simulates the paint itself: loaded bristles lay down real pigment, wet paint flows and levels, and thick strokes build genuine impasto relief that catches the light.
 
 Paint on a canvas that's actually three-dimensional. Tilt it to see ridges of thick paint stand up off the surface, move the light to rake across the texture, and watch wet paint ooze, drip, and settle like the real thing.
 
@@ -11,6 +11,6 @@ Paint on a canvas that's actually three-dimensional. Tilt it to see ridges of th
 • Adjustable lighting — rake a light across the surface to reveal every ridge
 • Export your work as an image, or as a 3D model of the painted surface
 
-Multi-touch built for iPad: one finger paints, two fingers pan and pinch-zoom, and the orbit control tilts the canvas in 3D — so you can rotate the painting while you paint.
+Multi-touch on iPhone and iPad: one finger paints, two fingers pan, pinch-zoom and twist to rotate, and the orbit control tilts the canvas in 3D — so you can rotate the painting while you paint. On iPhone the controls slide in from the right edge so the canvas gets the whole screen.
 
 No account, no sign-in, no data collection. Just paint.
