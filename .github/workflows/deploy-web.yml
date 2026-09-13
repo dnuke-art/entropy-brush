@@ -31,13 +31,22 @@ jobs:
       # e.g. the paint-flow sim) and emits a dart2js JS bundle alongside it;
       # flutter_bootstrap.js loads wasm where WasmGC is supported and falls back
       # to JS otherwise, so older browsers are unaffected.
-      - run: flutter build web --wasm --release --base-href / --dart-define=BUILD_TAG="web $(date -u +%Y-%m-%d) #${{ github.run_number }}"
+      - run: flutter build web --wasm --release --base-href /app/ --dart-define=BUILD_TAG="web $(date -u +%Y-%m-%d) #${{ github.run_number }}"
 
       # Publish build/web to the web-deploy branch (single clean commit).
+      # Site layout: static landing/support/privacy pages (site/) at the root,
+      # the Flutter web app under /app/ (base-href above must match).
+      - name: Assemble site
+        run: |
+          rm -rf out && mkdir -p out/app
+          cp -r site/. out/
+          cp -r build/web/. out/app/
+          ls out out/app | head -40
+
       - uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./build/web
+          publish_dir: ./out
           publish_branch: web-deploy
           force_orphan: true
           cname: entropybrush.art
